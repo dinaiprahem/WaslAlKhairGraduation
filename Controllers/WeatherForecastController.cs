@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace WaslAlkhair.Api.Controllers
@@ -19,6 +20,7 @@ namespace WaslAlkhair.Api.Controllers
         }
 
         [HttpGet(Name = "GetWeatherForecast")]
+        [Authorize(Roles = "Admin")]
         public IEnumerable<WeatherForecast> Get()
         {
             return Enumerable.Range(1, 5).Select(index => new WeatherForecast
