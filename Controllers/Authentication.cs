@@ -23,7 +23,6 @@ namespace WaslAlkhair.Api.Controllers
         private readonly IUserRepository _userRepository;
         private readonly APIResponse _response;
         private readonly IMapper _mapper;
-        private readonly UserManager<AppUser> _userManager;
 
         public AuthenticationController(IUserRepository userRepository, APIResponse response,
             IMapper mapper, UserManager<AppUser> userManager)
@@ -31,7 +30,6 @@ namespace WaslAlkhair.Api.Controllers
             _userRepository = userRepository;
             _response = response;
             _mapper = mapper;
-            _userManager = userManager;
         }
 
         [HttpPost("register")]
@@ -104,7 +102,7 @@ namespace WaslAlkhair.Api.Controllers
             //After we check Email , Check if the password is correct for this Email
             var isValidPassword = await _userRepository.CheckPasswordAsync(user, request.Password);
 
-            //If one of them filed , Login Faild
+            //If one of them Faild , Login Faild
             if (user == null || !isValidPassword)
             {
                 _response.StatusCode = HttpStatusCode.BadRequest;
@@ -115,21 +113,59 @@ namespace WaslAlkhair.Api.Controllers
 
             //If Email and Password are correct , Generate Token to return with User data
             var token = await _userRepository.CreateJwtToken(user);
-            var userToReturn = new UserDTO
+            var role=await _userRepository.GetRoleAsync(user);  //Get the previously stored Role of the User
+            object loginResponse = null;
+            if (role== "User")   //If the Role is user , return UserDTO in result
             {
-                Id = user.Id,
-                Email = user.Email,
-                FullName = user.FullName,
-                PhoneNumber = user.PhoneNumber,
-                Major = user.Major,
-                Age = "15"
-            };
-            var loginResponse = new LoginResponseDto
+                var userToReturn = new UserDTO
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                    PhoneNumber = user.PhoneNumber,
+                    Major = user.Major,
+                    Age = "15"
+                };
+                loginResponse = new LoginResponseDto<UserDTO>
+                {
+                    User = userToReturn,
+                    Token = token,
+                    Role = "User"
+                };
+            }
+            else if(role=="Charity")
             {
-                User = userToReturn,
-                Token = token,
-                Role = "User"
-            };
+                var userToReturn = new CharityDTO
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    CharityName=user.FullName,
+                    CharityMission=user.CharityMission,
+                    CharityRegistrationNumber=user.CharityRegistrationNumber
+                };
+                loginResponse = new LoginResponseDto<CharityDTO>
+                {
+                    User = userToReturn,
+                    Token = token,
+                    Role = "Charity"
+                };
+            }
+            else
+            {
+                var userToReturn = new AdminDTO
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    FullName = user.FullName,
+                };
+                loginResponse = new LoginResponseDto<AdminDTO>
+                {
+                    User = userToReturn,
+                    Token = token,
+                    Role = "Admin"
+                };
+            }
+            
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Message = "Login successful";

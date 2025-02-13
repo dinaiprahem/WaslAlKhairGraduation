@@ -1,9 +1,9 @@
 ﻿
 namespace WaslAlkhair.Api.DTOs.Authentication
 {
-    public class LoginResponseDto
+    public class LoginResponseDto<T>
     {
-        public UserDTO User { get; set; }
+        public T User { get; set; }
         public string Token { get; set; }
         public string Role { get; set; }
 
