@@ -1,4 +1,5 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+﻿using System.Data;
+using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
 using System.Text;
@@ -113,15 +114,26 @@ namespace WaslAlkhair.Api.Controllers
             }
 
             //If Email and Password are correct , Generate Token to return with User data
-            var token = _userRepository.CreateJwtToken(user);
-
+            var token = await _userRepository.CreateJwtToken(user);
+            var userToReturn = new UserDTO
+            {
+                Id = user.Id,
+                Email = user.Email,
+                FullName = user.FullName,
+                PhoneNumber = user.PhoneNumber,
+                Major = user.Major,
+                Age = "15"
+            };
+            var loginResponse = new LoginResponseDto
+            {
+                User = userToReturn,
+                Token = token,
+                Role = "User"
+            };
             _response.StatusCode = HttpStatusCode.OK;
             _response.IsSuccess = true;
             _response.Message = "Login successful";
-            _response.Result = new
-            {
-                
-            };
+            _response.Result = loginResponse;
             return Ok(_response);
         }
     }

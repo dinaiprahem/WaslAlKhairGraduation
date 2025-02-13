@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -21,10 +22,10 @@ namespace WaslAlkhair.Api.Repositories
         private readonly UserManager<AppUser> _userManager;
         private readonly JWTmodel _jwtOptions;
 
-        public UserRepository(UserManager<AppUser> userManager , JWTmodel jwtOptions)
+        public UserRepository(UserManager<AppUser> userManager , IConfiguration configuration)
         {
             _userManager = userManager;
-            _jwtOptions=jwtOptions;
+            _jwtOptions= configuration.GetSection("jwt").Get<JWTmodel>() ?? throw new ArgumentNullException(nameof(_jwtOptions), "JWT options cannot be null");
         }
 
         public async Task<AppUser> GetUserByEmailAsync(string email)
@@ -65,15 +66,17 @@ namespace WaslAlkhair.Api.Repositories
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             var expires = DateTime.UtcNow.AddDays(_jwtOptions.ExpirationInDays);
 
-            var token = new JwtSecurityToken(
-                issuer: _jwtOptions.Issuer,
-                audience: _jwtOptions.Audience,
-                claims: claims,
-                expires: expires,
-                signingCredentials: creds
-            );
+            var tokesDescriptor = new SecurityTokenDescriptor
+            {
+                Expires = expires,
+                Issuer = _jwtOptions.Issuer,
+                Audience = _jwtOptions.Audience,
+                SigningCredentials = creds,
+                Subject = new ClaimsIdentity(claims)
+            };
 
-            return new JwtSecurityTokenHandler().WriteToken(token);
+            var securityToken= new JwtSecurityTokenHandler().CreateToken(tokesDescriptor);
+            return new JwtSecurityTokenHandler().WriteToken(securityToken);
         }
     }
 }
