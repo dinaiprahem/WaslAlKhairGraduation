@@ -1,6 +1,27 @@
 [
   {
     "ContainingType": "WaslAlkhair.Api.Controllers.AuthenticationController",
+    "Method": "EmailVerification",
+    "RelativePath": "api/Authentication/EmailVerification",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "email",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "code",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WaslAlkhair.Api.Controllers.AuthenticationController",
     "Method": "Login",
     "RelativePath": "api/Authentication/login",
     "HttpMethod": "POST",
