@@ -11,6 +11,7 @@ namespace WaslAlkhair.Api.Repositories.Interfaces
         Task<IdentityResult> CreateUserAsync(AppUser user, string password);
         Task<IdentityResult> AddUserToRoleAsync(AppUser user, string role);
         Task<bool> CheckPasswordAsync(AppUser user, string password);
+        Task<String> GetRoleAsync(AppUser user);
         Task<string> CreateJwtToken(AppUser user);
     }
 }

@@ -1,0 +1,9 @@
+﻿namespace WaslAlkhair.Api.DTOs.Authentication
+{
+    public class AdminDTO
+    {
+        public String Id {  get; set; }
+        public string Email { get; set; }
+        public string FullName { get; set; }
+    }
+}

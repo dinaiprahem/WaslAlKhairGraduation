@@ -78,5 +78,11 @@ namespace WaslAlkhair.Api.Repositories
             var securityToken= new JwtSecurityTokenHandler().CreateToken(tokesDescriptor);
             return new JwtSecurityTokenHandler().WriteToken(securityToken);
         }
+
+        public async Task<string> GetRoleAsync(AppUser user)
+        {
+           var roles= await _userManager.GetRolesAsync(user);
+            return roles.FirstOrDefault();
+        }
     }
 }
