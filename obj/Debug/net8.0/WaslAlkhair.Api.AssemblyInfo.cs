@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("WaslAlkhair.Api")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b8340e71f63172c2751cc1010a9414d9f8db8033")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7e4330eb2fc2bd97077615bbcba5f3ea4f8b991b")]
 [assembly: System.Reflection.AssemblyProductAttribute("WaslAlkhair.Api")]
 [assembly: System.Reflection.AssemblyTitleAttribute("WaslAlkhair.Api")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
