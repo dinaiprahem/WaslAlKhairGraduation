@@ -1,0 +1,92 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "E:\\Fatma\u0027s\\Grad\\WaslAlKhair\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{CAEBE9BF-B867-285C-2EB1-21A7FA82DBBC}|WaslAlkhair.Api.csproj|e:\\fatma\u0027s\\grad\\waslalkhair\\controllers\\authenticationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CAEBE9BF-B867-285C-2EB1-21A7FA82DBBC}|WaslAlkhair.Api.csproj|solutionrelative:controllers\\authenticationcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CAEBE9BF-B867-285C-2EB1-21A7FA82DBBC}|WaslAlkhair.Api.csproj|e:\\fatma\u0027s\\grad\\waslalkhair\\dtos\\authentication\\resetpasswordrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CAEBE9BF-B867-285C-2EB1-21A7FA82DBBC}|WaslAlkhair.Api.csproj|solutionrelative:dtos\\authentication\\resetpasswordrequestdto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CAEBE9BF-B867-285C-2EB1-21A7FA82DBBC}|WaslAlkhair.Api.csproj|e:\\fatma\u0027s\\grad\\waslalkhair\\appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{CAEBE9BF-B867-285C-2EB1-21A7FA82DBBC}|WaslAlkhair.Api.csproj|solutionrelative:appsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{CAEBE9BF-B867-285C-2EB1-21A7FA82DBBC}|WaslAlkhair.Api.csproj|e:\\fatma\u0027s\\grad\\waslalkhair\\dtos\\authentication\\requestforgotpassworddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{CAEBE9BF-B867-285C-2EB1-21A7FA82DBBC}|WaslAlkhair.Api.csproj|solutionrelative:dtos\\authentication\\requestforgotpassworddto.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 2,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{1c4feeaa-4718-4aa9-859d-94ce25d182ba}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ResetPasswordRequestDTO.cs",
+              "DocumentMoniker": "E:\\Fatma\u0027s\\Grad\\WaslAlKhair\\DTOs\\Authentication\\ResetPasswordRequestDTO.cs",
+              "RelativeDocumentMoniker": "DTOs\\Authentication\\ResetPasswordRequestDTO.cs",
+              "ToolTip": "E:\\Fatma\u0027s\\Grad\\WaslAlKhair\\DTOs\\Authentication\\ResetPasswordRequestDTO.cs",
+              "RelativeToolTip": "DTOs\\Authentication\\ResetPasswordRequestDTO.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAA5AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-14T22:03:23.773Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "AuthenticationController.cs",
+              "DocumentMoniker": "E:\\Fatma\u0027s\\Grad\\WaslAlKhair\\Controllers\\AuthenticationController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AuthenticationController.cs",
+              "ToolTip": "E:\\Fatma\u0027s\\Grad\\WaslAlKhair\\Controllers\\AuthenticationController.cs",
+              "RelativeToolTip": "Controllers\\AuthenticationController.cs",
+              "ViewState": "AgIAAHcAAAAAAAAAAAAgwIkAAAARAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-14T21:31:52.729Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "appsettings.json",
+              "DocumentMoniker": "E:\\Fatma\u0027s\\Grad\\WaslAlKhair\\appsettings.json",
+              "RelativeDocumentMoniker": "appsettings.json",
+              "ToolTip": "E:\\Fatma\u0027s\\Grad\\WaslAlKhair\\appsettings.json",
+              "RelativeToolTip": "appsettings.json",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAkAAAA0AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2025-02-14T21:44:08.07Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "RequestForgotPasswordDto.cs",
+              "DocumentMoniker": "E:\\Fatma\u0027s\\Grad\\WaslAlKhair\\DTOs\\Authentication\\RequestForgotPasswordDto.cs",
+              "RelativeDocumentMoniker": "DTOs\\Authentication\\RequestForgotPasswordDto.cs",
+              "ToolTip": "E:\\Fatma\u0027s\\Grad\\WaslAlKhair\\DTOs\\Authentication\\RequestForgotPasswordDto.cs",
+              "RelativeToolTip": "DTOs\\Authentication\\RequestForgotPasswordDto.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAIAAAApAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-02-14T21:34:44.567Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

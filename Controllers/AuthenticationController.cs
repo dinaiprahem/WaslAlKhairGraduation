@@ -120,6 +120,53 @@ namespace WaslAlkhair.Api.Controllers
             return Ok(new { message = "Email confirmed successfully!" });
         }
 
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(RequestForgotPasswordDto request)
+        {
+            if (ModelState.IsValid)
+            {
+                //Valudate user
+                var user = await _userManager.FindByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    return BadRequest(new { message = "Invalid payload" });
+                }
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                if (string.IsNullOrEmpty(token))
+                {
+                    return BadRequest(new { message = "Something went wrong" });
+                }
+                var callbackUrl = $"https://localhost:5001/api/Authentication/ResetPassword?email={request.Email}&token={token}";
+                // Email functionality to send the code to the user
+                return Ok(new
+                {
+                    token = token,
+                    email = user.Email,
+                });
+
+            }
+            return BadRequest(new { message = "Invalid payload" });
+        }
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid payload" });
+            }
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return BadRequest(new { message = "Invalid payload" });
+            }
+            var resetPasswordResult = await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
+            if (!resetPasswordResult.Succeeded)
+            {
+                return BadRequest(new { message = "Password reset failed.", errors = resetPasswordResult.Errors.Select(e => e.Description) });
+            }
+            return Ok(new { message = "Password reset successfully!" });
+        }
+
 
         [HttpPost("login")]
         public async Task<ActionResult<APIResponse>> Login([FromBody] loginRequestDto request)
