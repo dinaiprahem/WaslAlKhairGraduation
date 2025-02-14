@@ -49,6 +49,46 @@
                 }
               }
             }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/APIResponse"
+                }
+              }
+            }
           }
         }
       }
@@ -199,7 +239,7 @@
       },
       "RegisterRequestDto": {
         "required": [
-          "dateOfBirth",
+          "age",
           "email",
           "fullName",
           "major",
@@ -224,9 +264,9 @@
             "minLength": 1,
             "type": "string"
           },
-          "dateOfBirth": {
-            "type": "string",
-            "format": "date-time"
+          "age": {
+            "type": "integer",
+            "format": "int32"
           },
           "phoneNumber": {
             "minLength": 1,

@@ -4,6 +4,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using AutoMapper;
+using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -33,6 +34,9 @@ namespace WaslAlkhair.Api.Controllers
         }
 
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse) )]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResponse))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(APIResponse))]
         public async Task<ActionResult<APIResponse>> Register([FromBody] RegisterRequestDto request)
         {
 
@@ -51,7 +55,7 @@ namespace WaslAlkhair.Api.Controllers
                 // Create user
                 //var user = _mapper.Map<AppUser>(request);
 
-
+                var birthdate = DateTime.UtcNow.AddYears(-request.Age);
                 var user = new AppUser
                 {
                     Email = request.Email,
@@ -59,7 +63,7 @@ namespace WaslAlkhair.Api.Controllers
                     FullName = request.FullName,
                     PhoneNumber = request.PhoneNumber,
                     Major = request.Major,
-                    DateOfBirth = request.DateOfBirth
+                    DateOfBirth = birthdate
                 };
 
                 var createResult = await _userRepository.CreateUserAsync(user, request.Password);
@@ -117,6 +121,11 @@ namespace WaslAlkhair.Api.Controllers
             object loginResponse = null;
             if (role== "User")   //If the Role is user , return UserDTO in result
             {
+                var today = DateTime.UtcNow;
+                var birthdate = (DateTime)user.DateOfBirth;
+
+                var age = today.Year - birthdate.Year;
+                if (birthdate.Date > today.AddYears(-age)) age--;
                 var userToReturn = new UserDTO
                 {
                     Id = user.Id,
@@ -124,7 +133,7 @@ namespace WaslAlkhair.Api.Controllers
                     FullName = user.FullName,
                     PhoneNumber = user.PhoneNumber,
                     Major = user.Major,
-                    Age = "15"
+                    Age = age
                 };
                 loginResponse = new LoginResponseDto<UserDTO>
                 {
