@@ -97,6 +97,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<APIResponse>();
 builder.Services.AddScoped<JWTmodel>();
+builder.Services.AddTransient<EmailService>();
 
 var app = builder.Build();
 

@@ -24,14 +24,17 @@ namespace WaslAlkhair.Api.Controllers
         private readonly APIResponse _response;
         private readonly IMapper _mapper;
         private readonly UserManager<AppUser> _userManager;
+        private readonly EmailService _emailService;
+
 
         public AuthenticationController(IUserRepository userRepository, APIResponse response,
-            IMapper mapper, UserManager<AppUser> userManager)
+            IMapper mapper, UserManager<AppUser> userManager, EmailService emailService)
         {
             _userRepository = userRepository;
             _response = response;
             _mapper = mapper;
             _userManager = userManager;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
@@ -75,8 +78,13 @@ namespace WaslAlkhair.Api.Controllers
                 }
                 // Require email confirmation before signing in
                 var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                // Email functionality to send the code to the user
-                return Ok(new { message = $"Please confirm your email with the code that you have received! Here's the code: {code}" });
+
+                // Send email with the confirmation code
+                await _emailService.SendEmailAsync(user.Email, "Confirm Your Email",
+                    $"<h3>Verify Your Email</h3><p>Your confirmation code is: <strong>{code}</strong></p>");
+
+                return Ok(new { message = "A verification code has been sent to your email. Please check your inbox." });
+
 
             }
             catch (Exception ex)
@@ -110,6 +118,25 @@ namespace WaslAlkhair.Api.Controllers
 
             return Ok(new { message = "Email confirmed successfully!" });
         }
+        /*  [HttpGet("ValidateResetPasswordToken")]
+          public async Task<IActionResult> ValidateResetPasswordToken(string email, string token)
+          {
+              var user = await _userManager.FindByEmailAsync(email);
+              if (user == null)
+              {
+                  return BadRequest(new { message = "Invalid payload" });
+              }
+
+              // Validate the token
+              var isValidToken = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
+              if (!isValidToken)
+              {
+                  return BadRequest(new { message = "Invalid or expired token." });
+              }
+
+              //TODO Redirect to a frontend page where the user can submit the new password
+              // return Redirect($"https://yourfrontend.com/reset-password?email={email}&token={Uri.EscapeDataString(token)}");
+          }*/
 
         [HttpPost("ForgotPassword")]
         public async Task<IActionResult> ForgotPassword(RequestForgotPasswordDto request)
@@ -123,17 +150,10 @@ namespace WaslAlkhair.Api.Controllers
                     return BadRequest(new { message = "Invalid payload" });
                 }
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                if (string.IsNullOrEmpty(token))
-                {
-                    return BadRequest(new { message = "Something went wrong" });
-                }
-                var callbackUrl = $"https://localhost:5001/api/Authentication/ResetPassword?email={request.Email}&token={token}";
-                // Email functionality to send the code to the user
-                return Ok(new
-                {
-                    token = token,
-                    email = user.Email,
-                });
+                var resetLink = $"https://localhost:5001/api/Authentication/ValidateResetPasswordToken?email={request.Email}&token={Uri.EscapeDataString(token)}";
+                await _emailService.SendEmailAsync(user.Email, "Reset Your Password",
+                    $"<h3>Reset Password</h3><p>Click the link below to reset your password:</p><a href='{resetLink}'>Reset Password</a>");
+                return Ok(new { message = "A password reset link has been sent to your email. Please check your inbox." });
 
             }
             return BadRequest(new { message = "Invalid payload" });
@@ -150,13 +170,15 @@ namespace WaslAlkhair.Api.Controllers
             {
                 return BadRequest(new { message = "Invalid payload" });
             }
-            var resetPasswordResult = await _userManager.ResetPasswordAsync(user, request.Token, request.Password);
+            var decodedToken = Uri.UnescapeDataString(request.Token);
+            var resetPasswordResult = await _userManager.ResetPasswordAsync(user, decodedToken, request.Password);
             if (!resetPasswordResult.Succeeded)
             {
                 return BadRequest(new { message = "Password reset failed.", errors = resetPasswordResult.Errors.Select(e => e.Description) });
             }
             return Ok(new { message = "Password reset successfully!" });
         }
+
 
 
         [HttpPost("login")]
