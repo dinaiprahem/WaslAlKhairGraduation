@@ -7,5 +7,6 @@
         public string CharityName { get; set; }
         public string? CharityRegistrationNumber { get; set; }
         public string? CharityMission { get; set; }
+        public string PhoneNumber { get; set; }
     }
 }

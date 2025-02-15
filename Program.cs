@@ -6,11 +6,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using WaslAlkhair.Api.Data;
 using WaslAlkhair.Api.Helpers;
-using WaslAlkhair.Api.Mappings;
 using WaslAlkhair.Api.Models;
 using WaslAlkhair.Api.Repositories;
 using WaslAlkhair.Api.Repositories.Interfaces;
 using Microsoft.OpenApi.Models;
+using WaslAlkhair.Api.Profiles;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -85,7 +86,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 //AutoMapper
-builder.Services.AddAutoMapper (typeof(AppUserProfile).Assembly);
+builder.Services.AddAutoMapper(typeof(AppUserProfile));
 
 //Repositeries
 builder.Services.AddScoped<IUserRepository, UserRepository>();

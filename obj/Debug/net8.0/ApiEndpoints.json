@@ -22,6 +22,24 @@
           "text/json"
         ],
         "StatusCode": 200
+      },
+      {
+        "Type": "WaslAlkhair.Api.Helpers.APIResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 400
+      },
+      {
+        "Type": "WaslAlkhair.Api.Helpers.APIResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 500
       }
     ]
   },
@@ -48,6 +66,24 @@
           "text/json"
         ],
         "StatusCode": 200
+      },
+      {
+        "Type": "WaslAlkhair.Api.Helpers.APIResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 400
+      },
+      {
+        "Type": "WaslAlkhair.Api.Helpers.APIResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 500
       }
     ]
   }

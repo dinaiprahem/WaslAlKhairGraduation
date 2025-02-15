@@ -35,7 +35,6 @@ C:\Users\Norhan\source\repos\WaslAlkhair.Api\WaslAlkhair.Api\obj\Debug\net8.0\Wa
 C:\Users\Norhan\source\repos\WaslAlkhair.Api\WaslAlkhair.Api\obj\Debug\net8.0\WaslAlkhair.Api.genruntimeconfig.cache
 C:\Users\Norhan\source\repos\WaslAlkhair.Api\WaslAlkhair.Api\obj\Debug\net8.0\ref\WaslAlkhair.Api.dll
 C:\Users\Norhan\source\repos\WaslAlkhair.Api\WaslAlkhair.Api\bin\Debug\net8.0\AutoMapper.dll
-C:\Users\Norhan\source\repos\WaslAlkhair.Api\WaslAlkhair.Api\bin\Debug\net8.0\AutoMapper.Extensions.Microsoft.DependencyInjection.dll
 C:\Users\Norhan\source\repos\WaslAlkhair.Api\WaslAlkhair.Api\bin\Debug\net8.0\Azure.Core.dll
 C:\Users\Norhan\source\repos\WaslAlkhair.Api\WaslAlkhair.Api\bin\Debug\net8.0\Azure.Identity.dll
 C:\Users\Norhan\source\repos\WaslAlkhair.Api\WaslAlkhair.Api\bin\Debug\net8.0\Humanizer.dll
