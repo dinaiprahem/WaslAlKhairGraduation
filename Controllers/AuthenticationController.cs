@@ -37,7 +37,7 @@ namespace WaslAlkhair.Api.Controllers
             _emailService = emailService;
         }
 
-        [HttpPost("register")]
+        [HttpPost("Register")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResponse))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(APIResponse))]
@@ -180,7 +180,7 @@ namespace WaslAlkhair.Api.Controllers
 
 
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResponse))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(APIResponse))]

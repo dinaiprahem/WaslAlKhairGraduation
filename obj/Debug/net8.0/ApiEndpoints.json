@@ -118,5 +118,21 @@
       }
     ],
     "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WaslAlkhair.Api.Controllers.ExternalAuthController",
+    "Method": "GoogleLogin",
+    "RelativePath": "api/external-auth/google-login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "externalAuth",
+        "Type": "WaslAlkhair.Api.DTOs.Authentication.GoogleAuthDto",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
   }
 ]
