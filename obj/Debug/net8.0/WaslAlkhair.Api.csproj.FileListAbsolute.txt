@@ -532,3 +532,9 @@ E:\Fatma's\Grad\WaslAlKhair\obj\Debug\net8.0\refint\WaslAlkhair.Api.dll
 E:\Fatma's\Grad\WaslAlKhair\obj\Debug\net8.0\WaslAlkhair.Api.pdb
 E:\Fatma's\Grad\WaslAlKhair\obj\Debug\net8.0\WaslAlkhair.Api.genruntimeconfig.cache
 E:\Fatma's\Grad\WaslAlKhair\obj\Debug\net8.0\ref\WaslAlkhair.Api.dll
+E:\Fatma's\Grad\WaslAlKhair\bin\Debug\net8.0\Microsoft.AspNetCore.Authentication.Google.dll
+E:\Fatma's\Grad\WaslAlKhair\bin\Debug\net8.0\Google.Apis.dll
+E:\Fatma's\Grad\WaslAlKhair\bin\Debug\net8.0\Google.Apis.Auth.dll
+E:\Fatma's\Grad\WaslAlKhair\bin\Debug\net8.0\Google.Apis.Core.dll
+E:\Fatma's\Grad\WaslAlKhair\bin\Debug\net8.0\System.Management.dll
+E:\Fatma's\Grad\WaslAlKhair\bin\Debug\net8.0\runtimes\win\lib\net7.0\System.Management.dll

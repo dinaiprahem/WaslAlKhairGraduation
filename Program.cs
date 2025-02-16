@@ -11,6 +11,7 @@ using WaslAlkhair.Api.Repositories;
 using WaslAlkhair.Api.Repositories.Interfaces;
 using Microsoft.OpenApi.Models;
 using WaslAlkhair.Api.Profiles;
+using Microsoft.AspNetCore.Authentication.Google;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -67,6 +68,8 @@ builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 
 // Add JWT Authentication
 JWTmodel? jwtOptions = builder.Configuration.GetSection("jwt").Get<JWTmodel>();
+var googleAuthSettings = builder.Configuration.GetSection("GoogleAuth").Get<GoogleAuthSettings>();
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -88,6 +91,11 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
 
     };
+}).AddGoogle(GoogleDefaults.AuthenticationScheme, options =>
+{
+    options.ClientId = googleAuthSettings.ClientId;
+    options.ClientSecret = googleAuthSettings.ClientSecret;
+    options.CallbackPath = "/signin-google"; // Redirect URI
 });
 //AutoMapper
 builder.Services.AddAutoMapper(typeof(AppUserProfile));
@@ -110,7 +118,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication(); // Enable Authentication
 app.UseAuthorization();
 
 app.MapControllers();

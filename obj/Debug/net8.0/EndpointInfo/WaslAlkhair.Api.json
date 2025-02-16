@@ -242,6 +242,37 @@
           }
         }
       }
+    },
+    "/api/external-auth/google-login": {
+      "post": {
+        "tags": [
+          "ExternalAuth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleAuthDto"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleAuthDto"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleAuthDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
     }
   },
   "components": {
@@ -267,6 +298,16 @@
             "nullable": true
           },
           "result": {
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "GoogleAuthDto": {
+        "type": "object",
+        "properties": {
+          "idToken": {
+            "type": "string",
             "nullable": true
           }
         },
