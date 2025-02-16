@@ -4,7 +4,6 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using AutoMapper;
-using Azure;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,17 +23,22 @@ namespace WaslAlkhair.Api.Controllers
         private readonly IUserRepository _userRepository;
         private readonly APIResponse _response;
         private readonly IMapper _mapper;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly EmailService _emailService;
+
 
         public AuthenticationController(IUserRepository userRepository, APIResponse response,
-            IMapper mapper, UserManager<AppUser> userManager)
+            IMapper mapper, UserManager<AppUser> userManager, EmailService emailService)
         {
             _userRepository = userRepository;
             _response = response;
             _mapper = mapper;
+            _userManager = userManager;
+            _emailService = emailService;
         }
 
         [HttpPost("register")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse) )]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResponse))]
         [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(APIResponse))]
         public async Task<ActionResult<APIResponse>> Register([FromBody] RegisterRequestDto request)
@@ -54,7 +58,6 @@ namespace WaslAlkhair.Api.Controllers
 
                 // Create user
                 var user = _mapper.Map<AppUser>(request);
-
                 var createResult = await _userRepository.CreateUserAsync(user, request.Password);
                 if (!createResult.Succeeded)
                 {
@@ -73,10 +76,14 @@ namespace WaslAlkhair.Api.Controllers
                     _response.ErrorMessages = roleResult.Errors.Select(e => e.Description).ToList();
                     return BadRequest(_response);
                 }
+                // Temporarily comment out email confirmation logic
+                /*
+                var code = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                await _emailService.SendEmailAsync(user.Email, "Confirm Your Email",
+                    $"<h3>Verify Your Email</h3><p>Your confirmation code is: <strong>{code}</strong></p>");
+                */
 
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.Message = "Registration successful. Please log in.";
-                return Ok(_response);
+                return Ok(new { message = "Registration successful. Email verification is temporarily disabled." });
             }
             catch (Exception ex)
             {
@@ -87,6 +94,92 @@ namespace WaslAlkhair.Api.Controllers
             }
         }
 
+        /*    [HttpPost("EmailVerification")]
+            public async Task<IActionResult> EmailVerification(string? email, string? code)
+            {
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(code))
+                {
+                    return BadRequest(new { message = "Invalid payload" });
+                }
+
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    return BadRequest(new { message = "Invalid payload" });
+                }
+
+                var isVerified = await _userManager.ConfirmEmailAsync(user, code);
+                if (!isVerified.Succeeded)
+                {
+                    return BadRequest(new { message = "Email confirmation failed.", errors = isVerified.Errors.Select(e => e.Description) });
+                }
+
+                return Ok(new { message = "Email confirmed successfully!" });
+            }*/
+
+        /*[HttpGet("ValidateResetPasswordToken")]
+          public async Task<IActionResult> ValidateResetPasswordToken(string email, string token)
+          {
+              var user = await _userManager.FindByEmailAsync(email);
+              if (user == null)
+              {
+                  return BadRequest(new { message = "Invalid payload" });
+              }
+
+              // Validate the token
+              var isValidToken = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
+              if (!isValidToken)
+              {
+                  return BadRequest(new { message = "Invalid or expired token." });
+              }
+
+              //TODO Redirect to a frontend page where the user can submit the new password
+              // return Redirect($"https://yourfrontend.com/reset-password?email={email}&token={Uri.EscapeDataString(token)}");
+          }*/
+
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(RequestForgotPasswordDto request)
+        {
+            if (ModelState.IsValid)
+            {
+                //Valudate user
+                var user = await _userManager.FindByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    return BadRequest(new { message = "Invalid payload" });
+                }
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var resetLink = $"https://localhost:5001/api/Authentication/ValidateResetPasswordToken?email={request.Email}&token={Uri.EscapeDataString(token)}";
+                await _emailService.SendEmailAsync(user.Email, "Reset Your Password",
+                    $"<h3>Reset Password</h3><p>Click the link below to reset your password:</p><a href='{resetLink}'>Reset Password</a>");
+                return Ok(new { message = "A password reset link has been sent to your email. Please check your inbox." });
+
+            }
+            return BadRequest(new { message = "Invalid payload" });
+        }
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid payload" });
+            }
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return BadRequest(new { message = "Invalid payload" });
+            }
+            var decodedToken = Uri.UnescapeDataString(request.Token);
+            var resetPasswordResult = await _userManager.ResetPasswordAsync(user, decodedToken, request.Password);
+            if (!resetPasswordResult.Succeeded)
+            {
+                return BadRequest(new { message = "Password reset failed.", errors = resetPasswordResult.Errors.Select(e => e.Description) });
+            }
+            return Ok(new { message = "Password reset successfully!" });
+        }
+
+
+
         [HttpPost("login")]
         [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse))]
         [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResponse))]
@@ -95,14 +188,30 @@ namespace WaslAlkhair.Api.Controllers
         {
             try
             {
-                //check if the email is registerd before
+                // Check if the email is registered before
                 var user = await _userRepository.GetUserByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    _response.StatusCode = HttpStatusCode.Unauthorized;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string> { "User not found." };
+                    return Unauthorized(_response);
+                }
 
-                //After we check Email , Check if the password is correct for this Email
+                // Temporarily comment out email confirmation check
+                /*
+                if (!await _userManager.IsEmailConfirmedAsync(user))
+                {
+                    _response.StatusCode = HttpStatusCode.Unauthorized;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = new List<string> { "Email is not confirmed." };
+                    return Unauthorized(_response);
+                }
+                */
+
+                // Check if the password is correct for this email
                 var isValidPassword = await _userRepository.CheckPasswordAsync(user, request.Password);
-
-                //If one of them Faild , Login Faild
-                if (user == null || !isValidPassword)
+                if (!isValidPassword)
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
                     _response.IsSuccess = false;
@@ -110,11 +219,11 @@ namespace WaslAlkhair.Api.Controllers
                     return BadRequest(_response);
                 }
 
-                //If Email and Password are correct , Generate Token to return with User data
+                // If Email and Password are correct, generate Token to return with User data
                 var token = await _userRepository.CreateJwtToken(user);
-                var role = await _userRepository.GetRoleAsync(user);  //Get the previously stored Role of the User
+                var role = await _userRepository.GetRoleAsync(user);  // Get the previously stored Role of the User
                 object loginResponse = null;
-                if (role == "User")   //If the Role is user , return UserDTO in result
+                if (role == "User")   // If the Role is user, return UserDTO in result
                 {
                     loginResponse = new LoginResponseDto<UserDTO>
                     {
@@ -155,7 +264,6 @@ namespace WaslAlkhair.Api.Controllers
                 _response.ErrorMessages = new List<string> { ex.Message };
                 return StatusCode((int)HttpStatusCode.InternalServerError, _response);
             }
-
         }
-    }
+    } 
 }

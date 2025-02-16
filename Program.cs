@@ -56,10 +56,14 @@ builder.Services.AddDbContext<AppDbContext>(
     opt => opt.UseSqlServer(builder.Configuration["ConnictionString:DefaultSQLConnection"]));
 
 
-//Add Identity
-builder.Services.AddIdentity<AppUser, IdentityRole>().
-    AddEntityFrameworkStores<AppDbContext>();
-
+// Add Identity
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+{
+    options.SignIn.RequireConfirmedEmail = true;
+    options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
 
 // Add JWT Authentication
 JWTmodel? jwtOptions = builder.Configuration.GetSection("jwt").Get<JWTmodel>();
@@ -93,6 +97,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddScoped<APIResponse>();
 builder.Services.AddScoped<JWTmodel>();
+builder.Services.AddTransient<EmailService>();
 
 var app = builder.Build();
 
