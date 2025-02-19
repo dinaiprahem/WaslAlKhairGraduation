@@ -11,11 +11,13 @@ namespace WaslAlkhair.Api.Profiles
             /////----- Register ------////
             // RegisterRequestDto ->  AppUser
             CreateMap<RegisterRequestDto, AppUser>()
-                .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Email)) // Map Email to UserName
-                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src =>
-                  src.Age.HasValue ? DateTime.UtcNow.AddYears(-src.Age.Value) : (DateTime?)null))
-                // Calculate DateOfBirth from Age
-                .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow)); // Set CreatedAt to current UTC time
+                  .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Email)) // Map Email to UserName
+                  .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src =>
+                          src.Age.HasValue
+                         ? DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-src.Age.Value))
+                         : (DateOnly?)null)) // Convert to DateOnly
+                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow)); // Set CreatedAt to current UTC time
+
 
             /////----- Login ------////
             //  AppUser -> UserDTO
@@ -33,21 +35,22 @@ namespace WaslAlkhair.Api.Profiles
 
 
         // Helper method to calculate age from DateOfBirth
-        private int CalculateAge(DateTime? dateOfBirth)
+        private int CalculateAge(DateOnly? dateOfBirth)
         {
             if (!dateOfBirth.HasValue)
                 return 0;
 
-            var today = DateTime.UtcNow;
+            var today = DateOnly.FromDateTime(DateTime.UtcNow); // Convert today's date to DateOnly
             var birthdate = dateOfBirth.Value;
             var age = today.Year - birthdate.Year;
 
             // Adjust age if the birthday hasn't occurred yet this year
-            if (birthdate.Date > today.AddYears(-age))
+            if (birthdate > today.AddYears(-age))
                 age--;
 
             return age;
         }
+
     }
-    
+
 }
