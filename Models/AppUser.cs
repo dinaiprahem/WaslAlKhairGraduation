@@ -18,7 +18,6 @@ namespace WaslAlkhair.Api.Models
 
 
         // Normal User-specific properties
-        public string? Major { get; set; }
         public DateTime? DateOfBirth { get; set; }
 
     }

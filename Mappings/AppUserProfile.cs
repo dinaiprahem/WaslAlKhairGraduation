@@ -12,8 +12,8 @@ namespace WaslAlkhair.Api.Profiles
             // RegisterRequestDto ->  AppUser
             CreateMap<RegisterRequestDto, AppUser>()
                 .ForMember(dest => dest.UserName, opt => opt.MapFrom(src => src.Email)) // Map Email to UserName
-               .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src =>
-    src.Age.HasValue ? DateTime.UtcNow.AddYears(-src.Age.Value) : (DateTime?)null))
+                .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src =>
+                  src.Age.HasValue ? DateTime.UtcNow.AddYears(-src.Age.Value) : (DateTime?)null))
                 // Calculate DateOfBirth from Age
                 .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow)); // Set CreatedAt to current UTC time
 
