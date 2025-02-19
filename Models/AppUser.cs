@@ -18,7 +18,7 @@ namespace WaslAlkhair.Api.Models
 
 
         // Normal User-specific properties
-        public DateTime? DateOfBirth { get; set; }
+        public DateTime DateOfBirth { get; set; }
 
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace WaslAlkhair.Api.DTOs.Authentication
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace WaslAlkhair.Api.DTOs.Authentication
 {
     public class CharityDTO
     {
