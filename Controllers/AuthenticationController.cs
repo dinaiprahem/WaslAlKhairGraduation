@@ -4,6 +4,7 @@ using System.Net;
 using System.Security.Claims;
 using System.Text;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +13,7 @@ using WaslAlkhair.Api.DTOs.Authentication;
 using WaslAlkhair.Api.Helpers;
 using WaslAlkhair.Api.Models;
 using WaslAlkhair.Api.Repositories.Interfaces;
+using WaslAlkhair.Api.Services;
 
 namespace WaslAlkhair.Api.Controllers
 {
@@ -25,16 +27,18 @@ namespace WaslAlkhair.Api.Controllers
         private readonly IMapper _mapper;
         private readonly UserManager<AppUser> _userManager;
         private readonly EmailService _emailService;
+        private readonly ITokenBlacklist _tokenBlacklist;
 
 
         public AuthenticationController(IUserRepository userRepository, APIResponse response,
-            IMapper mapper, UserManager<AppUser> userManager, EmailService emailService)
+            IMapper mapper, UserManager<AppUser> userManager, EmailService emailService, ITokenBlacklist tokenBlacklist)
         {
             _userRepository = userRepository;
             _response = response;
             _mapper = mapper;
             _userManager = userManager;
             _emailService = emailService;
+            _tokenBlacklist = tokenBlacklist;
         }
 
         [HttpPost("Register")]
@@ -177,13 +181,15 @@ namespace WaslAlkhair.Api.Controllers
             }
             return Ok(new { message = "Password reset successfully!" });
         }
-
-
+        //Just to test if the logout is working
+        [HttpGet("Protected")]
+        [Authorize] // This ensures the endpoint is protected
+        public IActionResult Protected()
+        {
+            return Ok(new { message = "This is a protected endpoint. You are authenticated!" });
+        }
 
         [HttpPost("Login")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResponse))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(APIResponse))]
         public async Task<ActionResult<APIResponse>> Login([FromBody] loginRequestDto request)
         {
             try
@@ -198,17 +204,6 @@ namespace WaslAlkhair.Api.Controllers
                     return Unauthorized(_response);
                 }
 
-                // Temporarily comment out email confirmation check
-                /*
-                if (!await _userManager.IsEmailConfirmedAsync(user))
-                {
-                    _response.StatusCode = HttpStatusCode.Unauthorized;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages = new List<string> { "Email is not confirmed." };
-                    return Unauthorized(_response);
-                }
-                */
-
                 // Check if the password is correct for this email
                 var isValidPassword = await _userRepository.CheckPasswordAsync(user, request.Password);
                 if (!isValidPassword)
@@ -219,7 +214,7 @@ namespace WaslAlkhair.Api.Controllers
                     return BadRequest(_response);
                 }
 
-                // If Email and Password are correct, generate Token to return with User data
+                // Generate a new token
                 var token = await _userRepository.CreateJwtToken(user);
                 var role = await _userRepository.GetRoleAsync(user);  // Get the previously stored Role of the User
                 object loginResponse = null;
@@ -265,5 +260,41 @@ namespace WaslAlkhair.Api.Controllers
                 return StatusCode((int)HttpStatusCode.InternalServerError, _response);
             }
         }
-    } 
+        [HttpPost("Logout")]
+        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse))]
+        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResponse))]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(APIResponse))]
+        public async Task<ActionResult<APIResponse>> Logout()
+        {
+            try
+            {
+                // Get the token from the request header
+                var authHeader = Request.Headers["Authorization"].ToString();
+                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("Invalid or missing token.");
+                    return BadRequest(_response);
+                }
+
+                var token = authHeader.Replace("Bearer ", "");
+
+                // Add the token to the blacklist
+                await _tokenBlacklist.AddToBlacklistAsync(token);
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Message = "Logout successful.";
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { ex.Message };
+                return StatusCode((int)HttpStatusCode.InternalServerError, _response);
+            }
+        }
+    }
 }

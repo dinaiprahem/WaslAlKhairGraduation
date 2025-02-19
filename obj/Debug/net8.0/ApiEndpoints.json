@@ -18,7 +18,7 @@
   {
     "ContainingType": "WaslAlkhair.Api.Controllers.AuthenticationController",
     "Method": "Login",
-    "RelativePath": "api/Authentication/login",
+    "RelativePath": "api/Authentication/Login",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -29,6 +29,26 @@
         "IsRequired": true
       }
     ],
+    "ReturnTypes": [
+      {
+        "Type": "WaslAlkhair.Api.Helpers.APIResponse",
+        "MediaTypes": [
+          "text/plain",
+          "application/json",
+          "text/json"
+        ],
+        "StatusCode": 200
+      }
+    ]
+  },
+  {
+    "ContainingType": "WaslAlkhair.Api.Controllers.AuthenticationController",
+    "Method": "Logout",
+    "RelativePath": "api/Authentication/Logout",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
     "ReturnTypes": [
       {
         "Type": "WaslAlkhair.Api.Helpers.APIResponse",
@@ -61,8 +81,18 @@
   },
   {
     "ContainingType": "WaslAlkhair.Api.Controllers.AuthenticationController",
+    "Method": "Protected",
+    "RelativePath": "api/Authentication/Protected",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "WaslAlkhair.Api.Controllers.AuthenticationController",
     "Method": "Register",
-    "RelativePath": "api/Authentication/register",
+    "RelativePath": "api/Authentication/Register",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,

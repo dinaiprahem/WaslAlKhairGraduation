@@ -12,6 +12,7 @@ using WaslAlkhair.Api.Repositories.Interfaces;
 using Microsoft.OpenApi.Models;
 using WaslAlkhair.Api.Profiles;
 using Microsoft.AspNetCore.Authentication.Google;
+using WaslAlkhair.Api.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -106,6 +107,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<APIResponse>();
 builder.Services.AddScoped<JWTmodel>();
 builder.Services.AddTransient<EmailService>();
+builder.Services.AddSingleton<ITokenBlacklist, TokenBlacklist>();
 
 var app = builder.Build();
 
@@ -117,6 +119,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+app.UseMiddleware<JwtMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication(); // Enable Authentication
 app.UseAuthorization();
