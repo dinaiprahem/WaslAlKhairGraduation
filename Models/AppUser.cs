@@ -12,14 +12,15 @@ namespace WaslAlkhair.Api.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
 
+        // User and Charity Common properties
+        public DateOnly DateOfBirth { get; set; } // Creation Date for Charity , DateOfBirth for User
+
+
         // Charity-specific properties
         public string? CharityRegistrationNumber { get; set; }
         public string? CharityMission { get; set; }
 
-
-        // Normal User-specific properties
-        public string? Major { get; set; }
-        public DateTime? DateOfBirth { get; set; }
+        public string? Address { get; set; }
 
     }
 }

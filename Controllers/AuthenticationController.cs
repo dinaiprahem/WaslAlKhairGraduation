@@ -56,7 +56,7 @@ namespace WaslAlkhair.Api.Controllers
                 {
                     _response.StatusCode = HttpStatusCode.BadRequest;
                     _response.IsSuccess = false;
-                    _response.ErrorMessages.Add("Email is already taken.");
+                    _response.ErrorMessages.Add("User is already exist.");
                     return BadRequest(_response);
                 }
 
@@ -86,8 +86,9 @@ namespace WaslAlkhair.Api.Controllers
                 await _emailService.SendEmailAsync(user.Email, "Confirm Your Email",
                     $"<h3>Verify Your Email</h3><p>Your confirmation code is: <strong>{code}</strong></p>");
                 */
-
-                return Ok(new { message = "Registration successful. Email verification is temporarily disabled." });
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.Message = "Registerd Successfuly! Please Login";
+                return Ok(_response);
             }
             catch (Exception ex)
             {
@@ -161,6 +162,8 @@ namespace WaslAlkhair.Api.Controllers
             }
             return BadRequest(new { message = "Invalid payload" });
         }
+
+
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword(ResetPasswordRequestDTO request)
         {

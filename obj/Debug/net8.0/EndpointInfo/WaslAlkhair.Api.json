@@ -426,7 +426,6 @@
           "age",
           "email",
           "fullName",
-          "major",
           "password",
           "phoneNumber"
         ],
@@ -434,17 +433,15 @@
         "properties": {
           "email": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "fullName": {
-            "minLength": 1,
+            "maxLength": 50,
+            "minLength": 0,
             "type": "string"
           },
           "password": {
-            "minLength": 1,
-            "type": "string"
-          },
-          "major": {
             "minLength": 1,
             "type": "string"
           },
@@ -454,6 +451,7 @@
           },
           "phoneNumber": {
             "minLength": 1,
+            "pattern": "^(?:\\+20|0)?(10|11|12|15)\\d{8}$",
             "type": "string"
           }
         },
@@ -496,7 +494,8 @@
         "properties": {
           "email": {
             "minLength": 1,
-            "type": "string"
+            "type": "string",
+            "format": "email"
           },
           "password": {
             "minLength": 1,
