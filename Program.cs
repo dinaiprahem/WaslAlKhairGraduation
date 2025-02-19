@@ -12,6 +12,8 @@ using WaslAlkhair.Api.Repositories.Interfaces;
 using Microsoft.OpenApi.Models;
 using WaslAlkhair.Api.Profiles;
 using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -97,6 +99,26 @@ builder.Services.AddAuthentication(options =>
     options.ClientSecret = googleAuthSettings.ClientSecret;
     options.CallbackPath = "/signin-google"; // Redirect URI
 });
+
+//Customize the API Response for Validation Errors 
+builder.Services.Configure<ApiBehaviorOptions>(options =>
+{
+    options.InvalidModelStateResponseFactory = context =>
+    {
+        var response = new APIResponse
+        {
+            StatusCode = HttpStatusCode.BadRequest,
+            IsSuccess = false,
+            ErrorMessages = context.ModelState.Values
+                .SelectMany(v => v.Errors)
+                .Select(e => e.ErrorMessage)
+                .ToList()
+        };
+
+        return new BadRequestObjectResult(response);
+    };
+});
+
 //AutoMapper
 builder.Services.AddAutoMapper(typeof(AppUserProfile));
 

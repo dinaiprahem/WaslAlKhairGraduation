@@ -5,7 +5,7 @@
     "version": "1.0"
   },
   "paths": {
-    "/api/Authentication/register": {
+    "/api/Authentication/Register": {
       "post": {
         "tags": [
           "Authentication"
@@ -155,7 +155,7 @@
         }
       }
     },
-    "/api/Authentication/login": {
+    "/api/Authentication/Login": {
       "post": {
         "tags": [
           "Authentication"
