@@ -11,6 +11,10 @@ namespace WaslAlkhair.Api.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<AppUser>()
+                               .Property(u => u.DateOfBirth)
+                               .HasColumnType("DATE"); // ✅ Required for SQL Server
         }
+    
     }
 }
