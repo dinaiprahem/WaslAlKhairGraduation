@@ -130,6 +130,8 @@ builder.Services.AddScoped<APIResponse>();
 builder.Services.AddScoped<JWTmodel>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddSingleton<ITokenBlacklist, TokenBlacklist>();
+builder.Services.AddScoped<IApplicationUserRepositery , ApplicationUserRepositery>();
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 

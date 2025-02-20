@@ -13,7 +13,7 @@ namespace WaslAlkhair.Api.Data
             base.OnModelCreating(modelBuilder);
             modelBuilder.Entity<AppUser>()
                                .Property(u => u.DateOfBirth)
-                               .HasColumnType("DATE"); // ✅ Required for SQL Server
+                               .HasColumnType("DATE"); // Required for SQL Server
         }
     
     }
