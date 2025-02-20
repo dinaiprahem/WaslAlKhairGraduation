@@ -41,7 +41,7 @@ namespace WaslAlkhair.Api.Repositories
             return await query.FirstOrDefaultAsync();
         }
 
-        public async Task RemoveAsync(T entity)
+        public void  Delete(T entity)
         {
             dbset.Remove(entity);
         }

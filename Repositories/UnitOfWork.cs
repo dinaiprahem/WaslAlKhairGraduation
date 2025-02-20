@@ -10,16 +10,15 @@ namespace WaslAlkhair.Api.Repositories
 
         public IApplicationUserRepositery Users { get; private set; }
 
-        public UnitOfWork(AppDbContext context , ApplicationUserRepositery Users)
+        public UnitOfWork(AppDbContext context , IApplicationUserRepositery Users)
         {
             _context = context;
             this.Users = Users;
         }
 
-        public async Task<bool> Complete()
+        public async Task<bool> CompleteAsync()
         {
-            var result= await _context.SaveChangesAsync();
-            return result > 0;
+            return await _context.SaveChangesAsync() > 0;
         }
 
         public void Dispose()
