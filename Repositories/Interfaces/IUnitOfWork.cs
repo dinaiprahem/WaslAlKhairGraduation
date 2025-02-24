@@ -2,7 +2,7 @@
 {
     public interface IUnitOfWork :IDisposable
     {
-        IApplicationUserRepositery Users { get; }
+       // public IUserRepository UsersRepository { get;  }
         Task<bool> CompleteAsync();
     }
 }

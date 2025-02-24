@@ -8,12 +8,13 @@ namespace WaslAlkhair.Api.Repositories
     {
         private readonly AppDbContext _context;
 
-        public IApplicationUserRepositery Users { get; private set; }
+       
+        //public IUserRepository UsersRepository { get; private set; }
 
-        public UnitOfWork(AppDbContext context , IApplicationUserRepositery Users)
+        public UnitOfWork(AppDbContext context )
         {
             _context = context;
-            this.Users = Users;
+          
         }
 
         public async Task<bool> CompleteAsync()

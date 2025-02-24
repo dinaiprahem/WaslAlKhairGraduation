@@ -130,10 +130,12 @@ builder.Services.AddScoped<APIResponse>();
 builder.Services.AddScoped<JWTmodel>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddSingleton<ITokenBlacklist, TokenBlacklist>();
+builder.Services.AddScoped<IFileService, LocalFileStorageService>();
+
+
 
 //Repositery 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IApplicationUserRepositery , ApplicationUserRepositery>();
 
 
 var app = builder.Build();
@@ -146,7 +148,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<JwtMiddleware>();
+//app.UseMiddleware<JwtMiddleware>();
+app.UseStaticFiles(); // Enables serving static files from wwwroot
 app.UseHttpsRedirection();
 app.UseAuthentication(); // Enable Authentication
 app.UseAuthorization();
