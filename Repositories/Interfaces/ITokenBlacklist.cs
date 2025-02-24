@@ -1,4 +1,4 @@
-﻿namespace WaslAlkhair.Api.Services
+﻿namespace WaslAlkhair.Api.Repositories.Interfaces
 {
     public interface ITokenBlacklist
     {

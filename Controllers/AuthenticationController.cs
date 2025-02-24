@@ -13,7 +13,6 @@ using WaslAlkhair.Api.DTOs.Authentication;
 using WaslAlkhair.Api.Helpers;
 using WaslAlkhair.Api.Models;
 using WaslAlkhair.Api.Repositories.Interfaces;
-using WaslAlkhair.Api.Services;
 
 namespace WaslAlkhair.Api.Controllers
 {

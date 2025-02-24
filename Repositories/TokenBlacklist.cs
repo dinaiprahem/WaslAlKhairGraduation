@@ -1,4 +1,6 @@
-﻿namespace WaslAlkhair.Api.Services
+﻿using WaslAlkhair.Api.Repositories.Interfaces;
+
+namespace WaslAlkhair.Api.Repositories
 {
     public class TokenBlacklist : ITokenBlacklist
     {

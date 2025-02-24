@@ -12,7 +12,6 @@ using WaslAlkhair.Api.Repositories.Interfaces;
 using Microsoft.OpenApi.Models;
 using WaslAlkhair.Api.Profiles;
 using Microsoft.AspNetCore.Authentication.Google;
-using WaslAlkhair.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -130,6 +129,7 @@ builder.Services.AddScoped<APIResponse>();
 builder.Services.AddScoped<JWTmodel>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddSingleton<ITokenBlacklist, TokenBlacklist>();
+builder.Services.AddScoped<IOpportunityRepository, OpportunityRepository>();
 
 var app = builder.Build();
 

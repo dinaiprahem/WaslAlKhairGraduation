@@ -1,4 +1,5 @@
-﻿using WaslAlkhair.Api.Services;
+﻿using WaslAlkhair.Api.Repositories.Interfaces;
+
 namespace WaslAlkhair.Api.Helpers
 {
     public class JwtMiddleware
