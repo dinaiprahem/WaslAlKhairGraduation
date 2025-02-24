@@ -12,9 +12,9 @@ using WaslAlkhair.Api.Repositories.Interfaces;
 using Microsoft.OpenApi.Models;
 using WaslAlkhair.Api.Profiles;
 using Microsoft.AspNetCore.Authentication.Google;
-using WaslAlkhair.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
+using WaslAlkhair.Api.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -131,6 +131,15 @@ builder.Services.AddScoped<JWTmodel>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddSingleton<ITokenBlacklist, TokenBlacklist>();
 
+builder.Services.AddScoped<IOpportunityRepository, OpportunityRepository>();
+builder.Services.AddScoped<IFileService, LocalFileStorageService>();
+
+
+
+//Repositery 
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+
 var app = builder.Build();
 
 
@@ -141,7 +150,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseMiddleware<JwtMiddleware>();
+//app.UseMiddleware<JwtMiddleware>();
+app.UseStaticFiles(); // Enables serving static files from wwwroot
 app.UseHttpsRedirection();
 app.UseAuthentication(); // Enable Authentication
 app.UseAuthorization();

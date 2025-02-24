@@ -1,20 +1,46 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using WaslAlkhair.Api.Data.Configurations;
 using WaslAlkhair.Api.Models;
 
 namespace WaslAlkhair.Api.Data
 {
-    public class AppDbContext : IdentityDbContext<AppUser>
-    {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+	public class AppDbContext : IdentityDbContext<AppUser>
+	{
+		public DbSet<Opportunity> Opportunities { get; set; }
+		public DbSet<OpportunityParticipation> OpportunityParticipations { get; set; }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-            modelBuilder.Entity<AppUser>()
-                               .Property(u => u.DateOfBirth)
-                               .HasColumnType("DATE"); // ✅ Required for SQL Server
-        }
-    
-    }
+		public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			base.OnModelCreating(modelBuilder);
+
+			modelBuilder.ApplyConfiguration(new AppUserConfiguration());
+			modelBuilder.ApplyConfiguration(new OpportunityConfiguration());
+			modelBuilder.ApplyConfiguration(new OpportunityParticipationConfiguration());
+		}
+
+		public override int SaveChanges()
+		{
+			ProcessOpportunityStatus();
+			return base.SaveChanges();
+		}
+
+		public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+		{
+			ProcessOpportunityStatus();
+			return await base.SaveChangesAsync(cancellationToken);
+		}
+
+		private void ProcessOpportunityStatus()
+		{
+			foreach (var opportunity in ChangeTracker.Entries<Opportunity>()
+				.Where(e => e.State != EntityState.Unchanged)
+				.Select(e => e.Entity))
+			{
+				opportunity.CheckStatus(); 
+			}
+		}
+	}
 }

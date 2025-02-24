@@ -5,27 +5,35 @@ using System.Security.Claims;
 using System.Text;
 using AutoMapper;
 using Azure.Core;
+using Humanizer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using WaslAlkhair.Api.Data;
 using WaslAlkhair.Api.DTOs;
 using WaslAlkhair.Api.DTOs.Authentication;
+using WaslAlkhair.Api.DTOs.Charity;
+using WaslAlkhair.Api.DTOs.User;
 using WaslAlkhair.Api.Helpers;
 using WaslAlkhair.Api.Models;
 using WaslAlkhair.Api.Repositories.Interfaces;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using WaslAlkhair.Api.Services;
 
 namespace WaslAlkhair.Api.Repositories
 {
     public class UserRepository : IUserRepository
     {
         private readonly UserManager<AppUser> _userManager;
+        private readonly IMapper _mapper;
+        private readonly IFileService fileService;
         private readonly JWTmodel _jwtOptions;
 
-        public UserRepository(UserManager<AppUser> userManager , IConfiguration configuration)
+        public UserRepository(UserManager<AppUser> userManager , IConfiguration configuration 
+            , IMapper mapper , IFileService fileService)
         {
             _userManager = userManager;
-            _jwtOptions= configuration.GetSection("jwt").Get<JWTmodel>() ?? throw new ArgumentNullException(nameof(_jwtOptions), "JWT options cannot be null");
+            _mapper = mapper;
+            this.fileService = fileService;
+            _jwtOptions = configuration.GetSection("jwt").Get<JWTmodel>() ?? throw new ArgumentNullException(nameof(_jwtOptions), "JWT options cannot be null");
         }
 
         public async Task<AppUser> GetUserByEmailAsync(string email)
@@ -85,6 +93,71 @@ namespace WaslAlkhair.Api.Repositories
             return roles.FirstOrDefault();
         }
 
-       
+        public async Task<bool> DeleteUserAsync(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            var result = await _userManager.DeleteAsync(user);
+            return result.Succeeded;
+        }
+
+        public async Task<AppUser?> GetUserByIdAsync(string userId)
+        {
+            return await _userManager.FindByIdAsync(userId);
+        }
+
+        public async Task<List<CharityDTO>> GetAllCharitesAsync()
+        {
+            var charities = await _userManager.GetUsersInRoleAsync("Charity");
+            return _mapper.Map<List<CharityDTO>>(charities);
+        }
+        public async Task<List<UserDTO>> GetAllUsersAsync()
+        {
+            var charities = await _userManager.GetUsersInRoleAsync("User");
+            return _mapper.Map<List<UserDTO>>(charities);
+        }
+
+        public async Task<bool> UpdateCharityAsync(UpdateCharityDTO dto , AppUser charity)
+        {
+
+            charity.Email = dto.Email;
+            charity.FullName = dto.CharityName;
+            charity.CharityRegistrationNumber = dto.CharityRegistrationNumber;
+            charity.CharityMission = dto.CharityMission;
+            charity.DateOfBirth = (DateOnly)dto.EstablishedAt;
+            charity.Address = dto.Address;
+            charity.PhoneNumber = dto.PhoneNumber;
+
+            // Handle image upload
+            if (dto.Image != null)
+            {
+                var imagePath = await fileService.UploadFileAsync(dto.Image, "charity-logos");
+                charity.image = imagePath;
+            }
+
+            var result = await _userManager.UpdateAsync(charity);
+            return result.Succeeded;
+        }
+
+        public async Task<bool> UpdateUserAsync(updateUserDTO dto, AppUser user)
+        {
+            user.Email = dto.Email;
+            user.FullName = dto.FullName;
+            user.PhoneNumber = dto.PhoneNumber;
+            user.DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow.AddYears(-dto.Age));
+
+            // Handle image upload
+            if (dto.Image != null)
+            {
+                var imagePath = await fileService.UploadFileAsync(dto.Image, "user-profilePicture");
+                user.image = imagePath;
+            }
+
+            var result = await _userManager.UpdateAsync(user);
+            return result.Succeeded;
+        }
+
+
     }
 }
+

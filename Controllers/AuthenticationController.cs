@@ -13,7 +13,6 @@ using WaslAlkhair.Api.DTOs.Authentication;
 using WaslAlkhair.Api.Helpers;
 using WaslAlkhair.Api.Models;
 using WaslAlkhair.Api.Repositories.Interfaces;
-using WaslAlkhair.Api.Services;
 
 namespace WaslAlkhair.Api.Controllers
 {
@@ -184,13 +183,7 @@ namespace WaslAlkhair.Api.Controllers
             }
             return Ok(new { message = "Password reset successfully!" });
         }
-        //Just to test if the logout is working
-        [HttpGet("Protected")]
-        [Authorize] // This ensures the endpoint is protected
-        public IActionResult Protected()
-        {
-            return Ok(new { message = "This is a protected endpoint. You are authenticated!" });
-        }
+
 
         [HttpPost("Login")]
         public async Task<ActionResult<APIResponse>> Login([FromBody] loginRequestDto request)
@@ -263,41 +256,6 @@ namespace WaslAlkhair.Api.Controllers
                 return StatusCode((int)HttpStatusCode.InternalServerError, _response);
             }
         }
-        [HttpPost("Logout")]
-        [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(APIResponse))]
-        [ProducesResponseType(StatusCodes.Status400BadRequest, Type = typeof(APIResponse))]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError, Type = typeof(APIResponse))]
-        public async Task<ActionResult<APIResponse>> Logout()
-        {
-            try
-            {
-                // Get the token from the request header
-                var authHeader = Request.Headers["Authorization"].ToString();
-                if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
-                {
-                    _response.StatusCode = HttpStatusCode.BadRequest;
-                    _response.IsSuccess = false;
-                    _response.ErrorMessages.Add("Invalid or missing token.");
-                    return BadRequest(_response);
-                }
 
-                var token = authHeader.Replace("Bearer ", "");
-
-                // Add the token to the blacklist
-                await _tokenBlacklist.AddToBlacklistAsync(token);
-
-                _response.StatusCode = HttpStatusCode.OK;
-                _response.IsSuccess = true;
-                _response.Message = "Logout successful.";
-                return Ok(_response);
-            }
-            catch (Exception ex)
-            {
-                _response.StatusCode = HttpStatusCode.InternalServerError;
-                _response.IsSuccess = false;
-                _response.ErrorMessages = new List<string> { ex.Message };
-                return StatusCode((int)HttpStatusCode.InternalServerError, _response);
-            }
-        }
     }
 }
