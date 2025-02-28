@@ -1,5 +1,6 @@
 ﻿using Google;
 using WaslAlkhair.Api.Data;
+using WaslAlkhair.Api.Models;
 using WaslAlkhair.Api.Repositories.Interfaces;
 
 namespace WaslAlkhair.Api.Repositories
@@ -8,16 +9,17 @@ namespace WaslAlkhair.Api.Repositories
     {
         private readonly AppDbContext _context;
 
-       
-        //public IUserRepository UsersRepository { get; private set; }
 
-        public UnitOfWork(AppDbContext context )
+        public IOpportunityParticipationRepository OpportunityParticipation { get; }
+
+        public UnitOfWork(AppDbContext context ,
+            IOpportunityParticipationRepository opportunityParticipation)
         {
             _context = context;
-          
+            this.OpportunityParticipation = opportunityParticipation;
         }
 
-        public async Task<bool> CompleteAsync()
+        public async Task<bool> SaveAsync()
         {
             return await _context.SaveChangesAsync() > 0;
         }

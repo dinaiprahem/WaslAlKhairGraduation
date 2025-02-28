@@ -138,6 +138,7 @@ builder.Services.AddScoped<IFileService, LocalFileStorageService>();
 
 //Repositery 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<IOpportunityParticipationRepository, OpportunityParticipationRepository>();
 
 
 var app = builder.Build();
