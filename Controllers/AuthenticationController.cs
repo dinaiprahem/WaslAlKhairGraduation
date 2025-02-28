@@ -98,92 +98,6 @@ namespace WaslAlkhair.Api.Controllers
             }
         }
 
-        /*    [HttpPost("EmailVerification")]
-            public async Task<IActionResult> EmailVerification(string? email, string? code)
-            {
-                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(code))
-                {
-                    return BadRequest(new { message = "Invalid payload" });
-                }
-
-                var user = await _userManager.FindByEmailAsync(email);
-                if (user == null)
-                {
-                    return BadRequest(new { message = "Invalid payload" });
-                }
-
-                var isVerified = await _userManager.ConfirmEmailAsync(user, code);
-                if (!isVerified.Succeeded)
-                {
-                    return BadRequest(new { message = "Email confirmation failed.", errors = isVerified.Errors.Select(e => e.Description) });
-                }
-
-                return Ok(new { message = "Email confirmed successfully!" });
-            }*/
-
-        /*[HttpGet("ValidateResetPasswordToken")]
-          public async Task<IActionResult> ValidateResetPasswordToken(string email, string token)
-          {
-              var user = await _userManager.FindByEmailAsync(email);
-              if (user == null)
-              {
-                  return BadRequest(new { message = "Invalid payload" });
-              }
-
-              // Validate the token
-              var isValidToken = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
-              if (!isValidToken)
-              {
-                  return BadRequest(new { message = "Invalid or expired token." });
-              }
-
-              //TODO Redirect to a frontend page where the user can submit the new password
-              // return Redirect($"https://yourfrontend.com/reset-password?email={email}&token={Uri.EscapeDataString(token)}");
-          }*/
-
-        [HttpPost("ForgotPassword")]
-        public async Task<IActionResult> ForgotPassword(RequestForgotPasswordDto request)
-        {
-            if (ModelState.IsValid)
-            {
-                //Valudate user
-                var user = await _userManager.FindByEmailAsync(request.Email);
-                if (user == null)
-                {
-                    return BadRequest(new { message = "Invalid payload" });
-                }
-                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var resetLink = $"https://localhost:5001/api/Authentication/ValidateResetPasswordToken?email={request.Email}&token={Uri.EscapeDataString(token)}";
-                await _emailService.SendEmailAsync(user.Email, "Reset Your Password",
-                    $"<h3>Reset Password</h3><p>Click the link below to reset your password:</p><a href='{resetLink}'>Reset Password</a>");
-                return Ok(new { message = "A password reset link has been sent to your email. Please check your inbox." });
-
-            }
-            return BadRequest(new { message = "Invalid payload" });
-        }
-
-
-        [HttpPost("ResetPassword")]
-        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDTO request)
-        {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(new { message = "Invalid payload" });
-            }
-            var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null)
-            {
-                return BadRequest(new { message = "Invalid payload" });
-            }
-            var decodedToken = Uri.UnescapeDataString(request.Token);
-            var resetPasswordResult = await _userManager.ResetPasswordAsync(user, decodedToken, request.Password);
-            if (!resetPasswordResult.Succeeded)
-            {
-                return BadRequest(new { message = "Password reset failed.", errors = resetPasswordResult.Errors.Select(e => e.Description) });
-            }
-            return Ok(new { message = "Password reset successfully!" });
-        }
-
 
         [HttpPost("Login")]
         public async Task<ActionResult<APIResponse>> Login([FromBody] loginRequestDto request)
@@ -256,6 +170,117 @@ namespace WaslAlkhair.Api.Controllers
                 return StatusCode((int)HttpStatusCode.InternalServerError, _response);
             }
         }
+
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(RequestForgotPasswordDto request)
+        {
+            if (ModelState.IsValid)
+            {
+                //Valudate user
+                var user = await _userManager.FindByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    return BadRequest(new { message = "Invalid payload" });
+                }
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var resetLink = $"https://localhost:5001/api/Authentication/ValidateResetPasswordToken?email={request.Email}&token={Uri.EscapeDataString(token)}";
+                await _emailService.SendEmailAsync(user.Email, "Reset Your Password",
+                    $"<h3>Reset Password</h3><p>Click the link below to reset your password:</p><a href='{resetLink}'>Reset Password</a>");
+                return Ok(new { message = "A password reset link has been sent to your email. Please check your inbox." });
+
+            }
+            return BadRequest(new { message = "Invalid payload" });
+        }
+
+
+        [HttpPost("ResetPassword")]
+        public async Task<IActionResult> ResetPassword(ResetPasswordRequestDTO request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(new { message = "Invalid payload" });
+            }
+            var user = await _userManager.FindByEmailAsync(request.Email);
+            if (user == null)
+            {
+                return BadRequest(new { message = "Invalid payload" });
+            }
+            var decodedToken = Uri.UnescapeDataString(request.Token);
+            var resetPasswordResult = await _userManager.ResetPasswordAsync(user, decodedToken, request.Password);
+            if (!resetPasswordResult.Succeeded)
+            {
+                return BadRequest(new { message = "Password reset failed.", errors = resetPasswordResult.Errors.Select(e => e.Description) });
+            }
+            return Ok(new { message = "Password reset successfully!" });
+        }
+
+        [HttpPost("google-login")]
+        public async Task<IActionResult> GoogleLogin([FromBody] GoogleAuthDto externalAuth)
+        {
+            var payload = await _emailService.VerifyGoogleToken(externalAuth);
+            if (payload == null)
+                return BadRequest(new { message = "Invalid Google token" });
+
+            var user = await _userRepository.GetUserByEmailAsync(payload.Email);
+            if (user == null)
+            {
+                user = new AppUser
+                {
+                    Email = payload.Email,
+                    UserName = payload.Email,
+                    FullName = payload.Name
+                };
+                var createResult = await _userRepository.CreateUserAsync(user, null);
+                if (!createResult.Succeeded)
+                    return BadRequest(createResult.Errors);
+            }
+
+            var token = await _userRepository.CreateJwtToken(user);
+            return Ok(new { token });
+        }
+
+        /*    [HttpPost("EmailVerification")]
+          public async Task<IActionResult> EmailVerification(string? email, string? code)
+          {
+              if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(code))
+              {
+                  return BadRequest(new { message = "Invalid payload" });
+              }
+
+              var user = await _userManager.FindByEmailAsync(email);
+              if (user == null)
+              {
+                  return BadRequest(new { message = "Invalid payload" });
+              }
+
+              var isVerified = await _userManager.ConfirmEmailAsync(user, code);
+              if (!isVerified.Succeeded)
+              {
+                  return BadRequest(new { message = "Email confirmation failed.", errors = isVerified.Errors.Select(e => e.Description) });
+              }
+
+              return Ok(new { message = "Email confirmed successfully!" });
+          }*/
+
+        /*[HttpGet("ValidateResetPasswordToken")]
+          public async Task<IActionResult> ValidateResetPasswordToken(string email, string token)
+          {
+              var user = await _userManager.FindByEmailAsync(email);
+              if (user == null)
+              {
+                  return BadRequest(new { message = "Invalid payload" });
+              }
+
+              // Validate the token
+              var isValidToken = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", token);
+              if (!isValidToken)
+              {
+                  return BadRequest(new { message = "Invalid or expired token." });
+              }
+
+              //TODO Redirect to a frontend page where the user can submit the new password
+              // return Redirect($"https://yourfrontend.com/reset-password?email={email}&token={Uri.EscapeDataString(token)}");
+          }*/
 
     }
 }

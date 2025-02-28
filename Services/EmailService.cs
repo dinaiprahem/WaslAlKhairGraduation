@@ -2,7 +2,9 @@
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using Google.Apis.Auth;
 using Microsoft.Extensions.Configuration;
+using WaslAlkhair.Api.DTOs.Authentication;
 
 public class EmailService
 {
@@ -43,6 +45,22 @@ public class EmailService
         catch (Exception ex)
         {
             Console.WriteLine("❌ Error sending email: " + ex.Message);
+        }
+    }
+
+    public async Task<GoogleJsonWebSignature.Payload> VerifyGoogleToken(GoogleAuthDto externalAuth)
+    {
+        try
+        {
+            var settings = new GoogleJsonWebSignature.ValidationSettings
+            {
+                Audience = new List<string> { _configuration["Authentication:Google:ClientId"] }
+            };
+            return await GoogleJsonWebSignature.ValidateAsync(externalAuth.IdToken, settings);
+        }
+        catch
+        {
+            return null;
         }
     }
 }
