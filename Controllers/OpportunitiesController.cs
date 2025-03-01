@@ -2,12 +2,16 @@
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Protocol.Core.Types;
+using System.Net;
 using System.Security.Claims;
 using WaslAlkhair.Api.Data;
 using WaslAlkhair.Api.DTOs.Opportunity;
+using WaslAlkhair.Api.Helpers;
 using WaslAlkhair.Api.Models;
 using WaslAlkhair.Api.Repositories;
+using AutoMapper;
+using Azure.Core;
+using WaslAlkhair.Api.Services;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -15,94 +19,88 @@ public class OpportunitiesController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IOpportunityRepository _repository;
+    private readonly APIResponse _response;
+    private readonly IMapper _mapper;
+    private readonly IFileService _fileStorageService;
 
-    public OpportunitiesController(AppDbContext context, IOpportunityRepository repository)
+    public OpportunitiesController(AppDbContext context, IOpportunityRepository repository, IMapper mapper, IFileService fileStorageService)
     {
         _repository = repository;
         _context = context;
+        _response = new APIResponse();
+        _mapper = mapper;
+        _fileStorageService = fileStorageService;
     }
 
     // Get All Opportunities
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetOpportunities()
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<APIResponse>> GetOpportunities()
     {
-        var opportunities = await _context.Opportunities
-            .Include(o => o.CreatedBy) // Include the user who created the opportunity
-            .ToListAsync();
-
-        var opportunityDtos = opportunities.Select(o => new OpportunityDto
+        try
         {
-            Id = o.Id,
-            Title = o.Title,
-            Description = o.Description,
-            Tasks = o.Tasks,
-            StartDate = o.StartDate,
-            EndDate = o.EndDate,
-            SeatsAvailable = o.SeatsAvailable,
-            Location = o.Location,
-            Benefits = o.Benefits,
-            IsClosed = o.IsClosed,
-            RequiredAge = o.RequiredAge,
-            Type = o.Type,
-            PhotoUrl = o.PhotoUrl,
-            CreatedBy = new UserDto
-            {
-                Id = o.CreatedBy.Id,
-                FullName = o.CreatedBy.FullName
-            }
-        }).ToList();
+            var opportunities = await _context.Opportunities
+                .Include(o => o.CreatedBy)
+                .ToListAsync();
 
-        return Ok(opportunityDtos);
+            if (opportunities == null || !opportunities.Any())
+            {
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("No opportunities found.");
+                return NotFound(_response);
+            }
+
+            var opportunityDtos = _mapper.Map<List<OpportunityDto>>(opportunities);
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.Result = opportunityDtos;
+            return Ok(_response);
+        }
+        catch (Exception ex)
+        {
+            _response.StatusCode = HttpStatusCode.InternalServerError;
+            _response.IsSuccess = false;
+            _response.ErrorMessages.Add(ex.Message);
+            return StatusCode(500, _response);
+        }
     }
 
     [HttpGet("{id:int}", Name = "GetOpportunity")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetOpportunity(int id)
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<APIResponse>> GetOpportunity(int id)
     {
-        var opportunity = await _context.Opportunities
-            .Include(o => o.CreatedBy)
-            .Include(o => o.Participants)
-            .FirstOrDefaultAsync(o => o.Id == id);
-
-        if (opportunity == null)
-            return NotFound();
-
-        var opportunityDto = new OpportunityDto
+        try
         {
-            Id = opportunity.Id,
-            Title = opportunity.Title,
-            Description = opportunity.Description,
-            Tasks = opportunity.Tasks,
-            StartDate = opportunity.StartDate,
-            EndDate = opportunity.EndDate,
-            SeatsAvailable = opportunity.SeatsAvailable,
-            Location = opportunity.Location,
-            Benefits = opportunity.Benefits,
-            IsClosed = opportunity.IsClosed,
-            RequiredAge = opportunity.RequiredAge,
-            Type = opportunity.Type,
-            PhotoUrl = opportunity.PhotoUrl,
-            CreatedBy = new UserDto
-            {
-                Id = opportunity.CreatedBy.Id,
-                FullName = opportunity.CreatedBy.FullName
-            },
-            Participants = opportunity.Participants.Select(p => new ParticipationDto
-            {
-                Id = p.Id,
-                FullName = p.FullName,
-                Age = p.Age,
-                Gender = p.Gender,
-                Email = p.Email,
-                Specialization = p.Specialization,
-                PhoneNumber = p.PhoneNumber,
-                Address = p.Address
-            }).ToList()
-        };
+            var opportunity = await _context.Opportunities
+                .Include(o => o.CreatedBy)
+                .Include(o => o.Participants)
+                .FirstOrDefaultAsync(o => o.Id == id);
 
-        return Ok(opportunityDto);
+            if (opportunity == null)
+            {
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add($"Opportunity with ID {id} not found.");
+                return NotFound(_response);
+            }
+
+            var opportunityDto = _mapper.Map<OpportunityDto>(opportunity);
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.Result = opportunityDto;
+            return Ok(_response);
+        }
+        catch (Exception ex)
+        {
+            _response.StatusCode = HttpStatusCode.InternalServerError;
+            _response.IsSuccess = false;
+            _response.ErrorMessages.Add(ex.Message);
+            return StatusCode(500, _response);
+        }
     }
 
     [HttpPost("CreateOpportunity")]
@@ -111,271 +109,233 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> CreateOpportunity([FromBody] CreateOpportunityDto dto)
+    public async Task<ActionResult<APIResponse>> CreateOpportunity([FromForm] CreateOpportunityDto dto)
     {
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new
-                {
-                    Message = "Validation failed. Please check the provided data.",
-                    Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
-                });
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Validation failed. Please check the provided data.");
+                _response.ErrorMessages.AddRange(ModelState.Values
+                    .SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
+                return BadRequest(_response);
             }
 
-            // Extract logged-in user ID from JWT token
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new { Message = "User ID not found in token. Please log in again." });
+                _response.StatusCode = HttpStatusCode.Unauthorized;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("User ID not found in token. Please log in again.");
+                return Unauthorized(_response);
             }
 
-            // Create a new opportunity instance
-            var opportunity = new Opportunity
+            var opportunity = _mapper.Map<Opportunity>(dto);
+            opportunity.CreatedById = userId;
+            opportunity.IsClosed = false;
+
+            // Handle image upload
+            if (dto.Image != null)
             {
-                Title = dto.Title,
-                Description = dto.Description,
-                Tasks = dto.Tasks,
-                StartDate = dto.StartDate,
-                EndDate = dto.EndDate,
-                SeatsAvailable = dto.SeatsAvailable,
-                Location = dto.Location,
-                Benefits = dto.Benefits,
-                RequiredAge = dto.RequiredAge,
-                Type = dto.Type,
-                //PhotoUrl = dto.PhotoUrl,
-                CreatedById = userId,
-                IsClosed = false
-            };
+                var imagePath = await _fileStorageService.UploadFileAsync(dto.Image, "opp-imgs");
+                if (string.IsNullOrEmpty(imagePath))
+                {
+                    _response.StatusCode = HttpStatusCode.InternalServerError;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("Failed to upload the image.");
+                    return StatusCode(500, _response);
+                }
+                opportunity.PhotoUrl = imagePath;
+            }
 
             _context.Opportunities.Add(opportunity);
             await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
 
-            return CreatedAtAction(nameof(GetOpportunity), new { id = opportunity.Id }, opportunity);
+            _response.StatusCode = HttpStatusCode.Created;
+            _response.Result = _mapper.Map<OpportunityDto>(opportunity);
+            return CreatedAtRoute("GetOpportunity", new { id = opportunity.Id }, _response);
         }
         catch (Exception ex)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError, new
-            {
-                Message = "An error occurred while creating the opportunity.",
-                Details = ex.Message
-            });
+            await transaction.RollbackAsync();
+            _response.StatusCode = HttpStatusCode.InternalServerError;
+            _response.IsSuccess = false;
+            _response.ErrorMessages.Add("An error occurred while creating the opportunity.");
+            _response.ErrorMessages.Add(ex.Message);
+            return StatusCode(500, _response);
         }
     }
+
     [HttpDelete("{id:int}")]
-    [Authorize] // Ensure the user is authenticated
-    [ProducesResponseType(StatusCodes.Status200OK)] // Changed to 200 OK for success message
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> DeleteOpportunity(int id)
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<APIResponse>> DeleteOpportunity(int id)
     {
-        var opportunity = await _context.Opportunities.FindAsync(id);
-        if (opportunity == null)
+        try
         {
-            return NotFound(new
+            var opportunity = await _context.Opportunities.FindAsync(id);
+            if (opportunity == null)
             {
-                Message = "Opportunity not found.",
-                Id = id
-            });
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add($"Opportunity with ID {id} not found.");
+                return NotFound(_response);
+            }
+
+            // Get the current user's ID
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            // Check if the current user is the creator of the opportunity
+            if (opportunity.CreatedById != userId)
+            {
+                _response.StatusCode = HttpStatusCode.Forbidden;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("You don't have permission to delete this opportunity.");
+                return StatusCode(403, _response);
+            }
+
+            // Delete the associated image if it exists
+            if (!string.IsNullOrEmpty(opportunity.PhotoUrl))
+            {
+                await _fileStorageService.DeleteFileAsync(opportunity.PhotoUrl, "opp-imgs");
+            }
+
+            _context.Opportunities.Remove(opportunity);
+            await _context.SaveChangesAsync();
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.Result = "Opportunity deleted successfully.";
+            return Ok(_response);
         }
-
-        // Get the current user's ID
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        // Check if the current user is the creator of the opportunity
-        if (opportunity.CreatedById != userId)
+        catch (Exception ex)
         {
-            return Forbid(); // Return 403 Forbidden if the user is not the creator
+            _response.StatusCode = HttpStatusCode.InternalServerError;
+            _response.IsSuccess = false;
+            _response.ErrorMessages.Add(ex.Message);
+            return StatusCode(500, _response);
         }
-
-        _context.Opportunities.Remove(opportunity);
-        await _context.SaveChangesAsync();
-
-        return Ok(new
-        {
-            Message = "Opportunity deleted successfully."
-        });
     }
+
     [HttpPut("{id:int}")]
-    [Authorize] // Ensure the user is authenticated
-    [ProducesResponseType(StatusCodes.Status200OK)] // Changed to 200 OK for success message
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> UpdateOpportunity(int id, [FromBody] UpdateOpportunityDto dto)
-    {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(new
-            {
-                Message = "Validation failed. Please check the provided data.",
-                Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
-            });
-        }
-
-        var existingOpportunity = await _context.Opportunities.FindAsync(id);
-        if (existingOpportunity == null)
-        {
-            return NotFound(new
-            {
-                Message = "Opportunity not found.",
-                Id = id
-            });
-        }
-
-        // Get the current user's ID
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-        // Check if the current user is the creator of the opportunity
-        if (existingOpportunity.CreatedById != userId)
-        {
-            return Forbid(); // Return 403 Forbidden if the user is not the creator
-        }
-
-        // Update the existing opportunity with the new data
-        existingOpportunity.Title = dto.Title;
-        existingOpportunity.Description = dto.Description;
-        existingOpportunity.Tasks = dto.Tasks;
-        existingOpportunity.StartDate = dto.StartDate;
-        existingOpportunity.EndDate = dto.EndDate;
-        existingOpportunity.SeatsAvailable = dto.SeatsAvailable;
-        existingOpportunity.Location = dto.Location;
-        existingOpportunity.Benefits = dto.Benefits;
-        existingOpportunity.RequiredAge = dto.RequiredAge;
-        existingOpportunity.Type = dto.Type;
-        existingOpportunity.PhotoUrl = dto.PhotoUrl;
-
-        _context.Opportunities.Update(existingOpportunity);
-        await _context.SaveChangesAsync();
-
-        return Ok(new
-        {
-            Message = "Opportunity updated successfully."
-        });
-    }
-
-    [HttpPatch("{id:int}")]
     [Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    public async Task<IActionResult> PatchOpportunity(int id, JsonPatchDocument<UpdateOpportunityDto> patchDTO)
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<APIResponse>> UpdateOpportunity(int id, [FromForm] UpdateOpportunityDto dto)
     {
-        if (patchDTO == null)
+        try
         {
-            return BadRequest(new
+            if (!ModelState.IsValid)
             {
-                Message = "Patch document is required."
-            });
-        }
+                _response.StatusCode = HttpStatusCode.BadRequest;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("Validation failed. Please check the provided data.");
+                _response.ErrorMessages.AddRange(ModelState.Values
+                    .SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
+                return BadRequest(_response);
+            }
 
-        var existingOpportunity = await _repository.GetOpportunityByIdAsync(id);
-        if (existingOpportunity == null)
-        {
-            return NotFound(new
+            var existingOpportunity = await _context.Opportunities.FindAsync(id);
+            if (existingOpportunity == null)
             {
-                Message = "Opportunity not found.",
-                Id = id
-            });
-        }
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add($"Opportunity with ID {id} not found.");
+                return NotFound(_response);
+            }
 
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (existingOpportunity.CreatedById != userId)
-        {
-            return Forbid();
-        }
+            // Get the current user's ID
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-        // Create a DTO to apply the patch
-        var opportunityToPatch = new UpdateOpportunityDto
-        {
-            Title = existingOpportunity.Title,
-            Description = existingOpportunity.Description,
-            Tasks = existingOpportunity.Tasks,
-            StartDate = existingOpportunity.StartDate,
-            EndDate = existingOpportunity.EndDate,
-            SeatsAvailable = existingOpportunity.SeatsAvailable,
-            Location = existingOpportunity.Location,
-            Benefits = existingOpportunity.Benefits,
-            RequiredAge = existingOpportunity.RequiredAge,
-            Type = existingOpportunity.Type,
-            PhotoUrl = existingOpportunity.PhotoUrl
-        };
-
-        // Apply the patch
-        patchDTO.ApplyTo(opportunityToPatch);
-
-        // Validate the patched model
-        if (!TryValidateModel(opportunityToPatch))
-        {
-            return BadRequest(new
+            // Check if the current user is the creator of the opportunity
+            if (existingOpportunity.CreatedById != userId)
             {
-                Message = "Invalid patch document.",
-                Errors = ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage))
-            });
+                _response.StatusCode = HttpStatusCode.Forbidden;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("You don't have permission to update this opportunity.");
+                return StatusCode(403, _response);
+            }
+
+            // Handle image update
+            if (dto.Image != null)
+            {
+                // Delete the old image if it exists
+                if (!string.IsNullOrEmpty(existingOpportunity.PhotoUrl))
+                {
+                    await _fileStorageService.DeleteFileAsync(existingOpportunity.PhotoUrl, "opp-imgs");
+                }
+
+                // Upload the new image
+                var imagePath = await _fileStorageService.UploadFileAsync(dto.Image, "opp-imgs");
+                if (string.IsNullOrEmpty(imagePath))
+                {
+                    _response.StatusCode = HttpStatusCode.InternalServerError;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("Failed to upload the new image.");
+                    return StatusCode(500, _response);
+                }
+                existingOpportunity.PhotoUrl = imagePath;
+            }
+
+            // Map other fields from DTO to existing entity
+            _mapper.Map(dto, existingOpportunity);
+
+            _context.Opportunities.Update(existingOpportunity);
+            await _context.SaveChangesAsync();
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.Result = "Opportunity updated successfully.";
+            return Ok(_response);
         }
-
-        // Map the patched DTO back to the entity
-        existingOpportunity.Title = opportunityToPatch.Title;
-        existingOpportunity.Description = opportunityToPatch.Description;
-        existingOpportunity.Tasks = opportunityToPatch.Tasks;
-        existingOpportunity.StartDate = opportunityToPatch.StartDate;
-        existingOpportunity.EndDate = opportunityToPatch.EndDate;
-        existingOpportunity.SeatsAvailable = opportunityToPatch.SeatsAvailable;
-        existingOpportunity.Location = opportunityToPatch.Location;
-        existingOpportunity.Benefits = opportunityToPatch.Benefits;
-        existingOpportunity.RequiredAge = opportunityToPatch.RequiredAge;
-        existingOpportunity.Type = opportunityToPatch.Type;
-        existingOpportunity.PhotoUrl = opportunityToPatch.PhotoUrl;
-
-        await _repository.UpdateOpportunityAsync(existingOpportunity);
-        return Ok(new
+        catch (Exception ex)
         {
-            Message = "Opportunity patched successfully."
-        });
+            _response.StatusCode = HttpStatusCode.InternalServerError;
+            _response.IsSuccess = false;
+            _response.ErrorMessages.Add(ex.Message);
+            return StatusCode(500, _response);
+        }
     }
     [HttpGet("search")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> SearchOpportunities([FromQuery] OpportunitySearchDto searchDto)
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<APIResponse>> SearchOpportunities([FromQuery] OpportunitySearchDto searchDto)
     {
-        var searchParams = new OpportunitySearchParams
+        try
         {
-            Location = searchDto.Location,
-            Type = searchDto.Type,
-            StartDate = searchDto.StartDate,
-            EndDate = searchDto.EndDate,
-            MinAge = searchDto.MinAge,
-            MaxSeats = searchDto.MaxSeats,
-            IsOpen = searchDto.IsOpen,
-            SearchTerm = searchDto.SearchTerm
-        };
+            var searchParams = _mapper.Map<OpportunitySearchParams>(searchDto);
 
-        var opportunities = await _repository.SearchOpportunitiesAsync(searchParams);
+            var opportunities = await _repository.SearchOpportunitiesAsync(searchParams);
 
-        var opportunityDtos = opportunities.Select(o => new OpportunityDto
-        {
-            Id = o.Id,
-            Title = o.Title,
-            Description = o.Description,
-            Tasks = o.Tasks,
-            StartDate = o.StartDate,
-            EndDate = o.EndDate,
-            SeatsAvailable = o.SeatsAvailable,
-            Location = o.Location,
-            Benefits = o.Benefits,
-            IsClosed = o.IsClosed,
-            RequiredAge = o.RequiredAge,
-            Type = o.Type,
-            PhotoUrl = o.PhotoUrl,
-            CreatedBy = new UserDto
+            if (opportunities == null || !opportunities.Any())
             {
-                Id = o.CreatedBy.Id,
-                FullName = o.CreatedBy.FullName
+                _response.StatusCode = HttpStatusCode.NotFound;
+                _response.IsSuccess = false;
+                _response.ErrorMessages.Add("No opportunities found matching the search criteria.");
+                return NotFound(_response);
             }
-        }).ToList();
 
-        return Ok(opportunityDtos);
+            var opportunityDtos = _mapper.Map<List<OpportunityDto>>(opportunities);
+
+            _response.StatusCode = HttpStatusCode.OK;
+            _response.Result = opportunityDtos;
+            return Ok(_response);
+        }
+        catch (Exception ex)
+        {
+            _response.StatusCode = HttpStatusCode.InternalServerError;
+            _response.IsSuccess = false;
+            _response.ErrorMessages.Add(ex.Message);
+            return StatusCode(500, _response);
+        }
     }
-
 }

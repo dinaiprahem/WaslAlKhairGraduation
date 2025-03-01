@@ -122,6 +122,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 //AutoMapper
 builder.Services.AddAutoMapper(typeof(AppUserProfile));
+builder.Services.AddAutoMapper(typeof(OpportunityProfile));
 
 //Repositeries
 builder.Services.AddScoped<IUserRepository, UserRepository>();

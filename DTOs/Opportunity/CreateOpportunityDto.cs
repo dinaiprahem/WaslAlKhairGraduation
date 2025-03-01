@@ -44,9 +44,7 @@ namespace WaslAlkhair.Api.DTOs.Opportunity
         [StringLength(50, MinimumLength = 2, ErrorMessage = "Type must be between 2 and 50 characters")]
         public string Type { get; set; } = string.Empty;
 
-        /*[StringLength(500, ErrorMessage = "Photo URL cannot exceed 500 characters")]
-        [Url(ErrorMessage = "Please provide a valid URL for the photo")]
-        public string? PhotoUrl { get; set; }*/
+        public IFormFile? Image { get; set; }
     }
 
     // Custom validation attributes - add these in the same namespace
