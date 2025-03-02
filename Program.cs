@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using WaslAlkhair.Api.Services;
+using WaslAlkhair.Api.Mappings;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -53,6 +54,8 @@ builder.Services.AddSwaggerGen(options =>
             new List<string>()
         }
     });
+    options.EnableAnnotations();
+
 });
 
 //Add DataBase
@@ -122,6 +125,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 //AutoMapper
 builder.Services.AddAutoMapper(typeof(AppUserProfile));
+builder.Services.AddAutoMapper(typeof(OpportunityProfile));
 
 //Repositeries
 builder.Services.AddScoped<IUserRepository, UserRepository>();

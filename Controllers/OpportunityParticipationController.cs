@@ -1,5 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
+using System.Security.Claims;
+using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
+using WaslAlkhair.Api.DTOs.OpportunityParticipation;
 using WaslAlkhair.Api.Models;
 using WaslAlkhair.Api.Repositories.Interfaces;
 
@@ -11,47 +16,91 @@ namespace WaslAlkhair.Api.Controllers
     {
 
         private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper mapper;
 
-        public OpportunityParticipationController(IUnitOfWork unitOfWork)
+        public OpportunityParticipationController(IUnitOfWork unitOfWork , IMapper mapper) 
         {
             _unitOfWork = unitOfWork;
+            this.mapper = mapper;
         }
 
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<OpportunityParticipation>>> GetAll()
+
+
+        [HttpPost("/api/opportunities/{opportunityId}/apply")]
+        [SwaggerOperation(Summary = "Apply for an opportunity")]
+        public async Task<IActionResult>Apply(CreateOpportunityParticipation dto)
+        { 
+
+            var participation = mapper.Map<OpportunityParticipation>(dto);
+
+            await _unitOfWork.OpportunityParticipation.CreateAsync(participation);
+            await _unitOfWork.SaveAsync(); 
+
+            var toReturn= mapper.Map<ResponsOpportunityParticipation>(participation);
+            return CreatedAtAction(nameof(GetParticipationDetails), new { id = participation.Id }, toReturn);
+        }
+
+     
+
+        [HttpDelete("{id}")]
+       // [Authorize(Roles = "User,Admin")]
+        public async Task<IActionResult> DeleteParticipation(int id)
         {
-            var participations = await _unitOfWork.OpportunityParticipation.GetAllAsync();
+            var participation = await _unitOfWork.OpportunityParticipation.GetAsync(p => p.Id == id);
+            if (participation == null)
+                return NotFound();
+
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            /*
+            // Only the user who applied or an admin can delete it
+            if (User.IsInRole("User") && userId != participation.AppUserId)
+                return Forbid();
+           */
+            _unitOfWork.OpportunityParticipation.Delete(participation);
+            await _unitOfWork.SaveAsync();
+
+            return NoContent();
+        }
+
+
+
+        [HttpGet("{id}")]
+        [SwaggerOperation(Summary = "Get a Participation Details")]
+        // [Authorize(Roles = "Charity,Admin")]
+        public async Task<IActionResult> GetParticipationDetails(int id)
+        {
+            var participation = await _unitOfWork.OpportunityParticipation.GetAsync(o => o.Id == id);
+            if (participation == null)
+                return NotFound();
+
+            var toReturn = mapper.Map<ResponsOpportunityParticipation>(participation);
+            return Ok(toReturn);
+        }
+
+
+
+        [HttpGet("/api/opportunities/{opportunityId}/participations")]
+        [SwaggerOperation(Summary = "Get list of participations for specific opportunity")]
+        // [Authorize(Roles = "Charity")]
+        public async Task<IActionResult> GetParticipationsByOpportunity(int opportunityId)
+        {
+            var participations = await _unitOfWork.OpportunityParticipation.GetAllAsync(p => p.OpportunityId == opportunityId);
             return Ok(participations);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<OpportunityParticipation>> GetById(int id)
-        {
-            var participation = await _unitOfWork.OpportunityParticipation.GetAsync(p => p.Id == id);
-            if (participation == null)
-                return NotFound(new { message = "Participation not found" });
 
-            return Ok(participation);
+
+        [HttpGet("/api/charities/{charityId}/participations")]
+        [SwaggerOperation(Summary = "Get All of participations for a Charity")]
+        // [Authorize(Roles = "Charity")]
+        public async Task<IActionResult> GetParticipationsByCharity(string charityId)
+        {
+            var participations = await _unitOfWork.OpportunityParticipation
+                .GetAllAsync(p => p.Opportunity.CreatedById == charityId);
+            return Ok(participations);
         }
 
-        [HttpPost]
-        public async Task<ActionResult> Create(OpportunityParticipation participation)
-        {
-            await _unitOfWork.OpportunityParticipation.CreateAsync(participation);
-            await _unitOfWork.SaveAsync(); // Commit transaction
-            return CreatedAtAction(nameof(GetById), new { id = participation.Id }, participation);
-        }
 
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> Delete(int id)
-        {
-            var participation = await _unitOfWork.OpportunityParticipation.GetAsync(p => p.Id == id);
-            if (participation == null)
-                return NotFound(new { message = "Participation not found" });
-
-            _unitOfWork.OpportunityParticipation.Delete(participation);
-            await _unitOfWork.SaveAsync(); // Commit transaction
-            return NoContent();
-        }
+        
     }
 }
