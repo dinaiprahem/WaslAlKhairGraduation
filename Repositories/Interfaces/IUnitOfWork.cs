@@ -3,6 +3,8 @@
     public interface IUnitOfWork :IDisposable
     {
         public IOpportunityParticipationRepository OpportunityParticipation { get;  }
-        Task<bool> SaveAsync();
+		public IAssistanceRepository AssistanceRepository { get; }
+		public IAssistanceTypeRepository AssistanceTypeRepository { get; }
+		Task<bool> SaveAsync();
     }
 }

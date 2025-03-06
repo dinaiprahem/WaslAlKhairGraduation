@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WaslAlkhair.Api.Data;
 
@@ -11,9 +12,11 @@ using WaslAlkhair.Api.Data;
 namespace WaslAlkhair.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250303203850_Assistance-AssistanceType-DB")]
+    partial class AssistanceAssistanceTypeDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,58 +24,6 @@ namespace WaslAlkhair.Api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Assistance", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("AssistanceTypeId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("AvailableSpots")
-                        .HasColumnType("int");
-
-                    b.Property<string>("ContactInfo")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("CreatedById")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime?>("DescriptionUpdatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsOpen")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AssistanceTypeId");
-
-                    b.HasIndex("CreatedById");
-
-                    b.ToTable("Assistances");
-                });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
                 {
@@ -298,6 +249,55 @@ namespace WaslAlkhair.Api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("WaslAlkhair.Api.Models.Assistance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AssistanceTypeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AvailableSpots")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ContactInfo")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsOpen")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssistanceTypeId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("Assistances");
+                });
+
             modelBuilder.Entity("WaslAlkhair.Api.Models.AssistanceType", b =>
                 {
                     b.Property<Guid>("Id")
@@ -316,47 +316,47 @@ namespace WaslAlkhair.Api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("58e35eb4-836b-4bb0-b01a-f7bd019f9b5e"),
+                            Id = new Guid("3aa682bf-4249-4b1c-81c2-4f5a1023db8d"),
                             Name = "طبية"
                         },
                         new
                         {
-                            Id = new Guid("2fc35c9b-96c7-42e8-bfa1-0b30b5ad6bac"),
+                            Id = new Guid("7acb0cec-05e6-413e-a71a-53dcf72e8177"),
                             Name = "غذائية"
                         },
                         new
                         {
-                            Id = new Guid("1d90c5f4-2055-42be-910c-45f6723d7b78"),
+                            Id = new Guid("725ed29c-5f5d-4029-847a-e138743b23b9"),
                             Name = "بيطرية"
                         },
                         new
                         {
-                            Id = new Guid("3937940e-b0e6-4feb-b75e-41a1c21da8e0"),
+                            Id = new Guid("0ffc5342-e850-44a5-a5c1-cf09d95d7291"),
                             Name = "تعليمية"
                         },
                         new
                         {
-                            Id = new Guid("329281db-bbb6-477c-b6e5-075e3ee9b207"),
+                            Id = new Guid("169c1e33-8d28-41db-a92b-7a2285c34c74"),
                             Name = "مالية"
                         },
                         new
                         {
-                            Id = new Guid("fe4d455a-89db-4082-8956-c069917e7c7d"),
+                            Id = new Guid("b4d9e548-4386-43c8-8d14-36adbc44f855"),
                             Name = "سكنية"
                         },
                         new
                         {
-                            Id = new Guid("f950645f-48f0-4e8c-a315-89165eb4342f"),
+                            Id = new Guid("ac94404c-894b-4093-8d64-ebdac3187722"),
                             Name = "بيئية"
                         },
                         new
                         {
-                            Id = new Guid("6e2db313-5415-4af0-925a-16d61c4b571e"),
+                            Id = new Guid("9502f090-447a-4ee4-b27e-d51613412b34"),
                             Name = "ذوي الاحتياجات الخاصة"
                         },
                         new
                         {
-                            Id = new Guid("9655751a-a07c-46e0-9871-d63b38b2f8ad"),
+                            Id = new Guid("db990003-196e-48dc-abe1-ac9712cacb52"),
                             Name = "طارئة وإغاثية"
                         });
                 });
@@ -483,25 +483,6 @@ namespace WaslAlkhair.Api.Migrations
                     b.ToTable("OpportunityParticipations");
                 });
 
-            modelBuilder.Entity("Assistance", b =>
-                {
-                    b.HasOne("WaslAlkhair.Api.Models.AssistanceType", "AssistanceType")
-                        .WithMany("Assistances")
-                        .HasForeignKey("AssistanceTypeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("WaslAlkhair.Api.Models.AppUser", "CreatedBy")
-                        .WithMany("Assistances")
-                        .HasForeignKey("CreatedById")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("AssistanceType");
-
-                    b.Navigation("CreatedBy");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole", null)
@@ -551,6 +532,25 @@ namespace WaslAlkhair.Api.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("WaslAlkhair.Api.Models.Assistance", b =>
+                {
+                    b.HasOne("WaslAlkhair.Api.Models.AssistanceType", "AssistanceType")
+                        .WithMany("Assistances")
+                        .HasForeignKey("AssistanceTypeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("WaslAlkhair.Api.Models.AppUser", "CreatedBy")
+                        .WithMany("Assistances")
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("AssistanceType");
+
+                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("WaslAlkhair.Api.Models.Opportunity", b =>

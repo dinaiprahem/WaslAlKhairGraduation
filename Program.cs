@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using WaslAlkhair.Api.Services;
 using WaslAlkhair.Api.Mappings;
+using WaslAlkhair.Api.MappingProfiles;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -126,6 +127,8 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 //AutoMapper
 builder.Services.AddAutoMapper(typeof(AppUserProfile));
 builder.Services.AddAutoMapper(typeof(OpportunityProfile));
+builder.Services.AddAutoMapper(typeof(AssistanceProfile));
+builder.Services.AddAutoMapper(typeof(AssistanceTypeProfile));
 
 //Repositeries
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -138,11 +141,11 @@ builder.Services.AddSingleton<ITokenBlacklist, TokenBlacklist>();
 builder.Services.AddScoped<IOpportunityRepository, OpportunityRepository>();
 builder.Services.AddScoped<IFileService, LocalFileStorageService>();
 
-
-
 //Repositery 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOpportunityParticipationRepository, OpportunityParticipationRepository>();
+builder.Services.AddScoped<IAssistanceRepository, AssistanceRepository>();
+builder.Services.AddScoped<IAssistanceTypeRepository, AssistanceTypeRepository>();
 
 
 var app = builder.Build();

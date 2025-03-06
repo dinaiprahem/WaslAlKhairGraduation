@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WaslAlkhair.Api.Data;
 
@@ -11,9 +12,11 @@ using WaslAlkhair.Api.Data;
 namespace WaslAlkhair.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250305222123_Description-updated-time")]
+    partial class Descriptionupdatedtime
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -52,8 +55,10 @@ namespace WaslAlkhair.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("DescriptionUpdatedAt")
-                        .HasColumnType("datetime2");
+                    b.Property<DateTime>("DescriptionUpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<bool>("IsOpen")
                         .ValueGeneratedOnAdd()
@@ -316,47 +321,47 @@ namespace WaslAlkhair.Api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("58e35eb4-836b-4bb0-b01a-f7bd019f9b5e"),
+                            Id = new Guid("beee0906-d843-43fb-b917-00d9990a54d7"),
                             Name = "طبية"
                         },
                         new
                         {
-                            Id = new Guid("2fc35c9b-96c7-42e8-bfa1-0b30b5ad6bac"),
+                            Id = new Guid("20fe0d71-0c40-4e6d-a009-ccdd096093ad"),
                             Name = "غذائية"
                         },
                         new
                         {
-                            Id = new Guid("1d90c5f4-2055-42be-910c-45f6723d7b78"),
+                            Id = new Guid("a6af92b6-73dd-4f69-b306-1039ed25cf8e"),
                             Name = "بيطرية"
                         },
                         new
                         {
-                            Id = new Guid("3937940e-b0e6-4feb-b75e-41a1c21da8e0"),
+                            Id = new Guid("b1aa4a17-e252-4256-b779-399770574b7c"),
                             Name = "تعليمية"
                         },
                         new
                         {
-                            Id = new Guid("329281db-bbb6-477c-b6e5-075e3ee9b207"),
+                            Id = new Guid("61a37ded-717c-47ab-aff3-287cfbdda6b1"),
                             Name = "مالية"
                         },
                         new
                         {
-                            Id = new Guid("fe4d455a-89db-4082-8956-c069917e7c7d"),
+                            Id = new Guid("75462e68-69d2-4675-98c3-e396c49caba6"),
                             Name = "سكنية"
                         },
                         new
                         {
-                            Id = new Guid("f950645f-48f0-4e8c-a315-89165eb4342f"),
+                            Id = new Guid("ca0df398-27c4-4790-a3d9-b93f2137509a"),
                             Name = "بيئية"
                         },
                         new
                         {
-                            Id = new Guid("6e2db313-5415-4af0-925a-16d61c4b571e"),
+                            Id = new Guid("007ff9e2-7730-43c9-89e0-493aabc61974"),
                             Name = "ذوي الاحتياجات الخاصة"
                         },
                         new
                         {
-                            Id = new Guid("9655751a-a07c-46e0-9871-d63b38b2f8ad"),
+                            Id = new Guid("99be6690-2207-45ab-a0df-955c4666d2f1"),
                             Name = "طارئة وإغاثية"
                         });
                 });

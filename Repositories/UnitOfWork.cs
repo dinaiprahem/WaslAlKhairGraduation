@@ -9,15 +9,20 @@ namespace WaslAlkhair.Api.Repositories
     {
         private readonly AppDbContext _context;
 
-
-        public IOpportunityParticipationRepository OpportunityParticipation { get; }
-
-        public UnitOfWork(AppDbContext context ,
-            IOpportunityParticipationRepository opportunityParticipation)
-        {
+		public IAssistanceRepository AssistanceRepository { get; }
+		public IOpportunityParticipationRepository OpportunityParticipation { get; }
+		public IAssistanceTypeRepository AssistanceTypeRepository { get;}
+		public UnitOfWork(AppDbContext context ,
+            IOpportunityParticipationRepository opportunityParticipation,
+			IAssistanceRepository AssistanceRepository,
+			IAssistanceTypeRepository AssistanceTypeRepository)
+		{
             _context = context;
             this.OpportunityParticipation = opportunityParticipation;
-        }
+            this.AssistanceRepository = AssistanceRepository;
+            this.AssistanceTypeRepository = AssistanceTypeRepository;
+		
+		}
 
         public async Task<bool> SaveAsync()
         {
