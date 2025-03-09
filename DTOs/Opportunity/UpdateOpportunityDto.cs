@@ -34,6 +34,7 @@ namespace WaslAlkhair.Api.DTOs.Opportunity
         [Required(ErrorMessage = "Type is required")]
         public string Type { get; set; } = string.Empty;
 
-        public string? PhotoUrl { get; set; }
+        public IFormFile? Image { get; set; }
+
     }
 }

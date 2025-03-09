@@ -15,7 +15,6 @@ using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using WaslAlkhair.Api.Services;
-using WaslAlkhair.Api.Mappings;
 
 
 var builder = WebApplication.CreateBuilder(args);
