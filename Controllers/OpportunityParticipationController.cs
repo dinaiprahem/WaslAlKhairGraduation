@@ -26,7 +26,7 @@ namespace WaslAlkhair.Api.Controllers
 
 
 
-        [HttpPost("/api/opportunities/{opportunityId}/apply")]
+        [HttpPost("/api/opportunities/{opportunityId}/participation")]
         [SwaggerOperation(Summary = "Apply for an opportunity")]
         public async Task<IActionResult>Apply(CreateOpportunityParticipation dto)
         { 

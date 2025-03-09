@@ -9,8 +9,12 @@ namespace WaslAlkhair.Api.Data
 	{
 		public DbSet<Opportunity> Opportunities { get; set; }
 		public DbSet<OpportunityParticipation> OpportunityParticipations { get; set; }
+        public DbSet<DonationOpportunity> DonationOpportunities { get; set; }
+        public DbSet<Donation> Donations { get; set; }
+        public DbSet<DonationDistribution> DonationDistributions { get; set; }
 
-		public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+
+        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
@@ -19,7 +23,11 @@ namespace WaslAlkhair.Api.Data
 			modelBuilder.ApplyConfiguration(new AppUserConfiguration());
 			modelBuilder.ApplyConfiguration(new OpportunityConfiguration());
 			modelBuilder.ApplyConfiguration(new OpportunityParticipationConfiguration());
-		}
+
+            modelBuilder.ApplyConfiguration(new DonationOpportunityConfiguration());
+            modelBuilder.ApplyConfiguration(new DonationConfiguration());
+            modelBuilder.ApplyConfiguration(new DonationDistributionConfiguration());
+        }
 
 		public override int SaveChanges()
 		{
