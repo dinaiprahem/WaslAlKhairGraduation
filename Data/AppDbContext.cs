@@ -27,9 +27,11 @@ namespace WaslAlkhair.Api.Data
             modelBuilder.ApplyConfiguration(new DonationOpportunityConfiguration());
             modelBuilder.ApplyConfiguration(new DonationConfiguration());
             modelBuilder.ApplyConfiguration(new DonationDistributionConfiguration());
+            modelBuilder.ApplyConfiguration(new GiftDonationConfiguration());
+
         }
 
-		public override int SaveChanges()
+        public override int SaveChanges()
 		{
 			ProcessOpportunityStatus();
 			return base.SaveChanges();

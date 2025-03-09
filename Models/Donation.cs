@@ -28,8 +28,8 @@ namespace WaslAlkhair.Api.Models
         // For tracking distributions 
         public ICollection<DonationDistribution> Distributions { get; set; } = new List<DonationDistribution>();
 
-        // For Gifted donations
-        //public GiftDonation? GiftDonation { get; set; }
+        //For Gifted donations
+        public GiftDonation? GiftDonation { get; set; }
 
    
     }
