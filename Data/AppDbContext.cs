@@ -12,6 +12,7 @@ namespace WaslAlkhair.Api.Data
         public DbSet<DonationOpportunity> DonationOpportunities { get; set; }
         public DbSet<Donation> Donations { get; set; }
         public DbSet<DonationDistribution> DonationDistributions { get; set; }
+        public DbSet<DonationCategory> DonationCategories { get; set; }
 
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
