@@ -37,3 +37,6 @@ obj/
 .ncrunch
 *.coverage
 coverage/
+
+#wwwroot Images
+wwwroot/
