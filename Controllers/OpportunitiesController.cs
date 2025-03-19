@@ -104,7 +104,7 @@ public class OpportunitiesController : ControllerBase
     }
 
     [HttpPost("CreateOpportunity")]
-    [Authorize]
+   // [Authorize]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]

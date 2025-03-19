@@ -14,6 +14,6 @@ namespace WaslAlkhair.Api.DTOs.Donation
 
         public bool IsGift { get; set; }
 
-        public GiftDonationDto GiftDetails { get; set; }
+        public GiftDonationDto? GiftDetails { get; set; }
     }
 }

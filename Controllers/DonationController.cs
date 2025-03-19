@@ -43,6 +43,8 @@ namespace WaslAlkhair.Api.Controllers
         public async Task<ActionResult<IEnumerable<DonationDto>>> GetUserDonations()
         {
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return BadRequest();
             var donations = await _context.Donations
                 .Where(d => d.DonorId == userId)
                 .Include(d => d.Category)
