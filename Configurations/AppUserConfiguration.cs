@@ -39,7 +39,14 @@ namespace WaslAlkhair.Api.Data.Configurations
 			builder.HasMany(u => u.OpportunityParticipations)
 				.WithOne(p => p.AppUser)
 				.HasForeignKey(p => p.AppUserId)
-				.OnDelete(DeleteBehavior.Cascade); 
+				.OnDelete(DeleteBehavior.Cascade);
+			
+			// One-to-Many: User -> Created Assistances
+
+			builder.HasMany(u => u.Assistances)
+				.WithOne(a => a.CreatedBy)
+				.HasForeignKey(a => a.CreatedById)
+				.OnDelete(DeleteBehavior.Restrict); // Prevent cascading delete
 		}
 	}
 }

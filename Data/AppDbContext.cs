@@ -14,6 +14,9 @@ namespace WaslAlkhair.Api.Data
         public DbSet<DonationDistribution> DonationDistributions { get; set; }
         public DbSet<DonationCategory> DonationCategories { get; set; }
         public DbSet<GiftDonation> GiftDonation { get; set; }
+		public DbSet<Assistance> Assistances { get; set; }
+		public DbSet<AssistanceType> AssistanceTypes { get; set; }
+
 
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
@@ -25,7 +28,8 @@ namespace WaslAlkhair.Api.Data
 			modelBuilder.ApplyConfiguration(new AppUserConfiguration());
 			modelBuilder.ApplyConfiguration(new OpportunityConfiguration());
 			modelBuilder.ApplyConfiguration(new OpportunityParticipationConfiguration());
-
+			modelBuilder.ApplyConfiguration(new AssistanceConfiguration());
+			modelBuilder.ApplyConfiguration(new AssistanceTypeConfiguration());
             modelBuilder.ApplyConfiguration(new DonationOpportunityConfiguration());
             modelBuilder.ApplyConfiguration(new DonationConfiguration());
             modelBuilder.ApplyConfiguration(new DonationDistributionConfiguration());

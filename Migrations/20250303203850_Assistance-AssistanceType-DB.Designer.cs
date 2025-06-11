@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WaslAlkhair.Api.Data;
 
@@ -11,9 +12,11 @@ using WaslAlkhair.Api.Data;
 namespace WaslAlkhair.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250303203850_Assistance-AssistanceType-DB")]
+    partial class AssistanceAssistanceTypeDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -246,61 +249,60 @@ namespace WaslAlkhair.Api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("WaslAlkhair.Api.Models.Donation", b =>
+            modelBuilder.Entity("WaslAlkhair.Api.Models.Assistance", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("AssistanceTypeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AvailableSpots")
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("ContactInfo")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
-                    b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<int?>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DonatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<string>("DonorId")
+                    b.Property<string>("CreatedById")
+                        .IsRequired()
                         .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("DonorId");
-
-                    b.ToTable("Donations", (string)null);
-                });
-
-            modelBuilder.Entity("WaslAlkhair.Api.Models.DonationCategory", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<bool>("IsOpen")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("bit");
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AssistanceTypeId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("Assistances");
+                });
+
+            modelBuilder.Entity("WaslAlkhair.Api.Models.AssistanceType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -309,139 +311,54 @@ namespace WaslAlkhair.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("DonationCategories", (string)null);
-                });
+                    b.ToTable("AssistanceTypes");
 
-            modelBuilder.Entity("WaslAlkhair.Api.Models.DonationDistribution", b =>
-                {
-                    b.Property<int>("DonationId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("DonationOpportunityId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("DistributedAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.HasKey("DonationId", "DonationOpportunityId");
-
-                    b.HasIndex("DonationId");
-
-                    b.HasIndex("DonationOpportunityId");
-
-                    b.ToTable("DonationDistributions", (string)null);
-                });
-
-            modelBuilder.Entity("WaslAlkhair.Api.Models.DonationOpportunity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CategoryId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("CharityId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<decimal>("CollectedAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("decimal(18, 2)")
-                        .HasDefaultValue(0m);
-
-                    b.Property<DateTime>("CreatedAt")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<DateTime?>("Deadline")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ImageUrl")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("NumberOfDonors")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<int>("PageVisits")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<decimal?>("TargetAmount")
-                        .HasColumnType("decimal(18, 2)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<DateTime>("UpdatedAt")
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.HasIndex("CharityId");
-
-                    b.ToTable("DonationOpportunities", (string)null);
-                });
-
-            modelBuilder.Entity("WaslAlkhair.Api.Models.GiftDonation", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("DonationId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("RecipientName")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("RecipientPhone")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<bool>("ShowAmount")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.Property<bool>("ShowOpportunity")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(false);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("DonationId")
-                        .IsUnique();
-
-                    b.ToTable("GiftDonation", (string)null);
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("3aa682bf-4249-4b1c-81c2-4f5a1023db8d"),
+                            Name = "طبية"
+                        },
+                        new
+                        {
+                            Id = new Guid("7acb0cec-05e6-413e-a71a-53dcf72e8177"),
+                            Name = "غذائية"
+                        },
+                        new
+                        {
+                            Id = new Guid("725ed29c-5f5d-4029-847a-e138743b23b9"),
+                            Name = "بيطرية"
+                        },
+                        new
+                        {
+                            Id = new Guid("0ffc5342-e850-44a5-a5c1-cf09d95d7291"),
+                            Name = "تعليمية"
+                        },
+                        new
+                        {
+                            Id = new Guid("169c1e33-8d28-41db-a92b-7a2285c34c74"),
+                            Name = "مالية"
+                        },
+                        new
+                        {
+                            Id = new Guid("b4d9e548-4386-43c8-8d14-36adbc44f855"),
+                            Name = "سكنية"
+                        },
+                        new
+                        {
+                            Id = new Guid("ac94404c-894b-4093-8d64-ebdac3187722"),
+                            Name = "بيئية"
+                        },
+                        new
+                        {
+                            Id = new Guid("9502f090-447a-4ee4-b27e-d51613412b34"),
+                            Name = "ذوي الاحتياجات الخاصة"
+                        },
+                        new
+                        {
+                            Id = new Guid("db990003-196e-48dc-abe1-ac9712cacb52"),
+                            Name = "طارئة وإغاثية"
+                        });
                 });
 
             modelBuilder.Entity("WaslAlkhair.Api.Models.Opportunity", b =>
@@ -507,7 +424,7 @@ namespace WaslAlkhair.Api.Migrations
 
                     b.HasIndex("CreatedById");
 
-                    b.ToTable("Opportunities", (string)null);
+                    b.ToTable("Opportunities");
                 });
 
             modelBuilder.Entity("WaslAlkhair.Api.Models.OpportunityParticipation", b =>
@@ -563,7 +480,7 @@ namespace WaslAlkhair.Api.Migrations
 
                     b.HasIndex("OpportunityId");
 
-                    b.ToTable("OpportunityParticipations", (string)null);
+                    b.ToTable("OpportunityParticipations");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -617,70 +534,23 @@ namespace WaslAlkhair.Api.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("WaslAlkhair.Api.Models.Donation", b =>
+            modelBuilder.Entity("WaslAlkhair.Api.Models.Assistance", b =>
                 {
-                    b.HasOne("WaslAlkhair.Api.Models.DonationCategory", "Category")
-                        .WithMany("Donations")
-                        .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("WaslAlkhair.Api.Models.AppUser", "Donor")
-                        .WithMany()
-                        .HasForeignKey("DonorId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Category");
-
-                    b.Navigation("Donor");
-                });
-
-            modelBuilder.Entity("WaslAlkhair.Api.Models.DonationDistribution", b =>
-                {
-                    b.HasOne("WaslAlkhair.Api.Models.Donation", "Donation")
-                        .WithMany("Distributions")
-                        .HasForeignKey("DonationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("WaslAlkhair.Api.Models.DonationOpportunity", "DonationOpportunity")
-                        .WithMany("DonationDistribution")
-                        .HasForeignKey("DonationOpportunityId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Donation");
-
-                    b.Navigation("DonationOpportunity");
-                });
-
-            modelBuilder.Entity("WaslAlkhair.Api.Models.DonationOpportunity", b =>
-                {
-                    b.HasOne("WaslAlkhair.Api.Models.DonationCategory", "Category")
-                        .WithMany("DonationOpportunities")
-                        .HasForeignKey("CategoryId")
+                    b.HasOne("WaslAlkhair.Api.Models.AssistanceType", "AssistanceType")
+                        .WithMany("Assistances")
+                        .HasForeignKey("AssistanceTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("WaslAlkhair.Api.Models.AppUser", "Charity")
-                        .WithMany()
-                        .HasForeignKey("CharityId")
+                    b.HasOne("WaslAlkhair.Api.Models.AppUser", "CreatedBy")
+                        .WithMany("Assistances")
+                        .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("Category");
+                    b.Navigation("AssistanceType");
 
-                    b.Navigation("Charity");
-                });
-
-            modelBuilder.Entity("WaslAlkhair.Api.Models.GiftDonation", b =>
-                {
-                    b.HasOne("WaslAlkhair.Api.Models.Donation", "Donation")
-                        .WithOne("GiftDonation")
-                        .HasForeignKey("WaslAlkhair.Api.Models.GiftDonation", "DonationId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Donation");
+                    b.Navigation("CreatedBy");
                 });
 
             modelBuilder.Entity("WaslAlkhair.Api.Models.Opportunity", b =>
@@ -715,28 +585,16 @@ namespace WaslAlkhair.Api.Migrations
 
             modelBuilder.Entity("WaslAlkhair.Api.Models.AppUser", b =>
                 {
+                    b.Navigation("Assistances");
+
                     b.Navigation("CreatedOpportunities");
 
                     b.Navigation("OpportunityParticipations");
                 });
 
-            modelBuilder.Entity("WaslAlkhair.Api.Models.Donation", b =>
+            modelBuilder.Entity("WaslAlkhair.Api.Models.AssistanceType", b =>
                 {
-                    b.Navigation("Distributions");
-
-                    b.Navigation("GiftDonation");
-                });
-
-            modelBuilder.Entity("WaslAlkhair.Api.Models.DonationCategory", b =>
-                {
-                    b.Navigation("DonationOpportunities");
-
-                    b.Navigation("Donations");
-                });
-
-            modelBuilder.Entity("WaslAlkhair.Api.Models.DonationOpportunity", b =>
-                {
-                    b.Navigation("DonationDistribution");
+                    b.Navigation("Assistances");
                 });
 
             modelBuilder.Entity("WaslAlkhair.Api.Models.Opportunity", b =>

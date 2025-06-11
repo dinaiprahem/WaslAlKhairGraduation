@@ -24,6 +24,7 @@ namespace WaslAlkhair.Api.Models
 		public ICollection<OpportunityParticipation> OpportunityParticipations { get; set; } = new List<OpportunityParticipation>();
 		// created by the user/charity
 		public ICollection<Opportunity> CreatedOpportunities { get; set; } = new List<Opportunity>();
-
+		//every user can create many assistances
+		public ICollection<Assistance> Assistances { get; set; } = new List<Assistance>();
 	}
 }

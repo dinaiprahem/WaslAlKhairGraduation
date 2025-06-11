@@ -6,5 +6,8 @@
         public IDonationCategoryRepository DonationCategory { get; }
         public IDonationOpportunityRepository DonationOpportunity { get; }
         Task<bool> SaveAsync();
+
+		public IAssistanceRepository AssistanceRepository { get; }
+		public IAssistanceTypeRepository AssistanceTypeRepository { get; }
     }
 }

@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using WaslAlkhair.Api.Services;
 using WaslAlkhair.Api.Mappings;
+using WaslAlkhair.Api.MappingProfiles;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -87,10 +88,10 @@ builder.Services.AddAuthentication(options =>
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
+        ValidateIssuer = false,
         ValidIssuer = jwtOptions.Issuer,
 
-        ValidateAudience = true,
+        ValidateAudience = false,
         ValidAudience = jwtOptions.Audience,
 
         ValidateIssuerSigningKey = true,
@@ -126,7 +127,12 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 //AutoMapper
 builder.Services.AddAutoMapper(typeof(AppUserProfile));
 builder.Services.AddAutoMapper(typeof(OpportunityProfile));
+
 builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+builder.Services.AddAutoMapper(typeof(AssistanceProfile));
+builder.Services.AddAutoMapper(typeof(AssistanceTypeProfile));
+
 
 //Repositeries
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -141,9 +147,12 @@ builder.Services.AddScoped<IFileService, LocalFileStorageService>();
 builder.Services.AddScoped<IDonationCategoryRepository, DonationCategoryRepository>();
 builder.Services.AddScoped<IDonationOpportunityRepository, DonationOpportunityRepository>();
 
+
 //Repositery 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOpportunityParticipationRepository, OpportunityParticipationRepository>();
+builder.Services.AddScoped<IAssistanceRepository, AssistanceRepository>();
+builder.Services.AddScoped<IAssistanceTypeRepository, AssistanceTypeRepository>();
 
 
 var app = builder.Build();
