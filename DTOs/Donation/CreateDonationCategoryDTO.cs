@@ -1,6 +1,6 @@
 ﻿namespace WaslAlkhair.Api.DTOs.Donation
 {
-    public class CreateCategoryDTO
+    public class CreateDonationCategoryDTO
     {
         public string Name { get; set; }
         public string Description { get; set; }

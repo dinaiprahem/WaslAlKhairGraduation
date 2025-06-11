@@ -11,12 +11,17 @@ namespace WaslAlkhair.Api.Repositories
 
 
         public IOpportunityParticipationRepository OpportunityParticipation { get; }
-
+        public IDonationCategoryRepository DonationCategory { get; }
+        public IDonationOpportunityRepository DonationOpportunity { get; }
         public UnitOfWork(AppDbContext context ,
-            IOpportunityParticipationRepository opportunityParticipation)
+            IOpportunityParticipationRepository opportunityParticipation,
+            IDonationCategoryRepository DonationCategory,
+            IDonationOpportunityRepository donationOpportunity)
         {
             _context = context;
             this.OpportunityParticipation = opportunityParticipation;
+            this.DonationCategory = DonationCategory;
+            this.DonationOpportunity = donationOpportunity;
         }
 
         public async Task<bool> SaveAsync()

@@ -24,6 +24,33 @@ namespace WaslAlkhair.Api.Mappings
 
             // Map between GiftDonation and GiftDonationDto (both ways)
             CreateMap<GiftDonation, GiftDonationDto>().ReverseMap();
+
+            // Category
+            CreateMap<DonationCategory,ResponseDonationCategoryDTO >()
+                 .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Name))
+                .ForMember(dest => dest.ImageUrl, opt => opt.MapFrom(src => src.ImageUrl));
+
+            // Opportunity 
+            CreateMap<CreateDonationOpportunityDTO, DonationOpportunity>()
+                  .ForMember(dest => dest.Category, opt => opt.Ignore());
+
+            CreateMap<UpdateDonationOpportunityDTO, DonationOpportunity>()
+                .ForMember(dest => dest.ImageUrl, opt => opt.Ignore()) // سيتم تحديثها يدويًا بعد رفع الصورة
+                .ForMember(dest => dest.Status, opt => opt.Ignore())   // سيتم تحديدها منطقيًا
+                .ForMember(dest => dest.CollectedAmount, opt => opt.Ignore()) // لا يتم التعديل عليها هنا
+                .ForMember(dest => dest.PageVisits, opt => opt.Ignore()) // مش محتاجينها هنا
+                .ForMember(dest => dest.NumberOfDonors, opt => opt.Ignore())
+                .ForMember(dest => dest.Category, opt => opt.Ignore())
+                .ForMember(dest => dest.Charity, opt => opt.Ignore());
+
+            CreateMap<DonationOpportunity, ResponseDonationOpportunityDetailsDTO>()
+                .ForMember(dest => dest.RemainingAmount, opt =>
+                    opt.MapFrom(src => src.TargetAmount.HasValue
+                        ? src.TargetAmount - src.CollectedAmount
+                        : (decimal?)null));
+
+            CreateMap<DonationOpportunity, ResponseAllDonationOpportunities>();
         }
     }
 }

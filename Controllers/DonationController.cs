@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -77,10 +77,9 @@ namespace WaslAlkhair.Api.Controllers
         }
 
         [HttpPost("opportunity")]
-        [Authorize]
         [SwaggerOperation(
             Summary = "Donate to a specific opportunity",
-            Description = "Allows the authenticated user to donate to a specific donation opportunity."
+            Description = "Allows user to donate to a specific donation opportunity."
         )]
         public async Task<ActionResult<DonationDto>> DonateToOpportunity(OpportunityDonationDto donationDto)
         {

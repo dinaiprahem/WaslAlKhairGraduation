@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WaslAlkhair.Api.Data;
 
@@ -11,9 +12,11 @@ using WaslAlkhair.Api.Data;
 namespace WaslAlkhair.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250506032750_DonationCategorySoftDelete")]
+    partial class DonationCategorySoftDelete
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -265,6 +268,9 @@ namespace WaslAlkhair.Api.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
+                    b.Property<int?>("DonationCategoryId")
+                        .HasColumnType("int");
+
                     b.Property<string>("DonorId")
                         .HasColumnType("nvarchar(450)");
 
@@ -274,6 +280,8 @@ namespace WaslAlkhair.Api.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CategoryId");
+
+                    b.HasIndex("DonationCategoryId");
 
                     b.HasIndex("DonorId");
 
@@ -620,9 +628,13 @@ namespace WaslAlkhair.Api.Migrations
             modelBuilder.Entity("WaslAlkhair.Api.Models.Donation", b =>
                 {
                     b.HasOne("WaslAlkhair.Api.Models.DonationCategory", "Category")
-                        .WithMany("Donations")
+                        .WithMany()
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("WaslAlkhair.Api.Models.DonationCategory", null)
+                        .WithMany("Donations")
+                        .HasForeignKey("DonationCategoryId");
 
                     b.HasOne("WaslAlkhair.Api.Models.AppUser", "Donor")
                         .WithMany()

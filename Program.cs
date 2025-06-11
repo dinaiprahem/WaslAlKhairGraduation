@@ -55,12 +55,12 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
     options.EnableAnnotations();
-
+   
 });
 
 //Add DataBase
 builder.Services.AddDbContext<AppDbContext>(
-    opt => opt.UseSqlServer(builder.Configuration["ConnictionString:DefaultSQLConnection"]));
+    opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection")));
 
 
 // Add Identity
@@ -138,8 +138,8 @@ builder.Services.AddSingleton<ITokenBlacklist, TokenBlacklist>();
 
 builder.Services.AddScoped<IOpportunityRepository, OpportunityRepository>();
 builder.Services.AddScoped<IFileService, LocalFileStorageService>();
-
-
+builder.Services.AddScoped<IDonationCategoryRepository, DonationCategoryRepository>();
+builder.Services.AddScoped<IDonationOpportunityRepository, DonationOpportunityRepository>();
 
 //Repositery 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -150,11 +150,11 @@ var app = builder.Build();
 
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseSwagger();
     app.UseSwaggerUI();
-}
+//}
 
 //app.UseMiddleware<JwtMiddleware>();
 app.UseStaticFiles(); // Enables serving static files from wwwroot

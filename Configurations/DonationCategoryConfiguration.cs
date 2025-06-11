@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using WaslAlkhair.Api.Models;
 
@@ -8,6 +8,8 @@ namespace WaslAlkhair.Api.Data.Configurations
     {
         public void Configure(EntityTypeBuilder<DonationCategory> builder)
         {
+            builder.ToTable("DonationCategories");
+
             // Primary Key
             builder.HasKey(c => c.Id);
 
@@ -41,9 +43,21 @@ namespace WaslAlkhair.Api.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of category if donations exist
 
 
-            // Index 
+            // Index with case-insensitive comparison
             builder.HasIndex(c => c.Name)
-                .IsUnique(); // Ensure category names are unique
+                .IsUnique()
+                .HasFilter("[IsDeleted] = 0")
+                .HasDatabaseName("IX_DonationCategory_Name_CaseInsensitive")
+                .IsClustered(false); // Non-clustered index for better performance
+
+            // Configure case-insensitive comparison for Name property
+            builder.Property(c => c.Name)
+                .UseCollation("SQL_Latin1_General_CP1_CI_AS"); // Case-insensitive collation
+
+            // Configure IsDeleted property
+            builder.Property(c => c.IsDeleted)
+                .IsRequired()
+                .HasDefaultValue(false);
         }
     }
 }

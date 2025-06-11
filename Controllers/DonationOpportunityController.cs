@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WaslAlkhair.Api.Data;
 using WaslAlkhair.Api.Models;
@@ -9,6 +9,13 @@ using System.Threading.Tasks;
 using Azure.Core;
 using WaslAlkhair.Api.Services;
 using WaslAlkhair.Api.DTOs.Donation;
+using WaslAlkhair.Api.DTOs.Opportunity;
+using Microsoft.AspNetCore.Authorization;
+using AutoMapper;
+using WaslAlkhair.Api.Helpers;
+using WaslAlkhair.Api.Repositories.Interfaces;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace WaslAlkhair.Api.Controllers
 {
@@ -16,22 +23,159 @@ namespace WaslAlkhair.Api.Controllers
     [ApiController]
     public class DonationOpportunityController : ControllerBase
     {
-        private readonly IFileService _fileStorageService;
+        private readonly IFileService fileStorageService;
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
+        private readonly ILogger<DonationCategoryController> _logger;
+        private readonly APIResponse _response;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly AppDbContext _context;
 
-        public DonationOpportunityController(IFileService fileStorageService, AppDbContext context)
+        public DonationOpportunityController(IFileService fileStorageService, IHttpContextAccessor httpContextAccessor,
+            IUnitOfWork unitOfWork,
+            IMapper mapper,
+            ILogger<DonationCategoryController> logger,
+            AppDbContext context,
+            APIResponse response)
         {
-            _fileStorageService = fileStorageService;
+            this.fileStorageService = fileStorageService;
+            _unitOfWork = unitOfWork;
+            _mapper = mapper;
+            _logger = logger;
+            _response = response;
+            _httpContextAccessor = httpContextAccessor;
             _context = context;
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Charity")]
+        public async Task<IActionResult> CreateOpportunity([FromForm] CreateDonationOpportunityDTO dto)
+        {
+            // Ensure category is exist
+            var category = await _unitOfWork.DonationCategory
+                .GetAsync(c => c.Name == dto.CategoryName && !c.IsDeleted);
+
+            if (category == null) return BadRequest("Category not found.");
+
+            // Get charityId 
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+            var charityId = claim.Value;
+
+            // ImageUrl
+            string? imagePath = null;
+            if (dto.ImageUrl != null)
+            {
+                imagePath = await fileStorageService.UploadFileAsync(
+                    dto.ImageUrl,
+                    "DonationOPP"
+                );
+            }
+
+           
+            var opportunity = _mapper.Map<DonationOpportunity>(dto);
+            opportunity.ImageUrl = imagePath;
+            opportunity.CategoryId = category.Id;
+            opportunity.CharityId = charityId;
+            opportunity.CreatedAt = DateTime.UtcNow;
+
+            await _unitOfWork.DonationOpportunity.CreateAsync(opportunity);
+            await _unitOfWork.SaveAsync();
+
+            return Ok("Opportunity created successfully.");
+        }
+
+
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Charity")]
+        public async Task<IActionResult> SoftDelete(int id)
+        {
+            var opportunity = await _unitOfWork.DonationOpportunity.GetAsync(o=>o.Id==id);
+            if (opportunity == null) return NotFound();
+
+            // Get charityId 
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+            var charityId = claim.Value;
+
+            if (charityId != opportunity.CharityId) return BadRequest("You are Only allowed to Delete your opportunities");
+
+            opportunity.Status = OpportunityStatus.Closed;
+            await _unitOfWork.SaveAsync();
+
+            return Ok("Opportunity marked as Closed.");
+        }
+
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Charity")]
+        public async Task<IActionResult> UpdateOpportunity(int id, [FromForm] UpdateDonationOpportunityDTO dto)
+        {
+            var opportunity = await _unitOfWork.DonationOpportunity.GetAsync(o => o.Id == id);
+            if (opportunity == null)
+                return NotFound("Opportunity not found.");
+
+            // Get charityId 
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier);
+            var charityId = claim.Value;
+
+            if (charityId != opportunity.CharityId) return BadRequest("You are Only allowed to Update your opportunities");
+            _mapper.Map(dto, opportunity);
+
+            // ✅ تحديث صورة لو موجودة
+            if (dto.Image != null)
+            {
+                // Delete old image if exists
+                if (!string.IsNullOrEmpty(opportunity.ImageUrl))
+                {
+                    await fileStorageService.DeleteFileAsync(opportunity.ImageUrl, "DonationOPP");
+
+                }
+                // ارفع الصورة إلى Cloudinary أو أي خدمة صور
+                var imageUrl = await fileStorageService.UploadFileAsync(dto.Image , "DonationOPP");
+                opportunity.ImageUrl = imageUrl;
+            }
+
+            // ✅ تحديث التواريخ
+            opportunity.UpdatedAt = DateTime.UtcNow;
+
+            // ✅ تحقق من حالة الفرصة حسب التواريخ والمبالغ
+            if (opportunity.Deadline.HasValue && opportunity.Deadline.Value < DateTime.UtcNow)
+            {
+                opportunity.Status = OpportunityStatus.Closed;
+            }
+            else if (opportunity.TargetAmount.HasValue && opportunity.CollectedAmount >= opportunity.TargetAmount)
+            {
+                opportunity.Status = OpportunityStatus.Completed;
+            }
+
+            await _unitOfWork.SaveAsync();
+            return Ok("Opportunity updated successfully.");
+        }
+
+        // Get single opportunity with details 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOpportunityById(int id)
+        {
+            var opportunity = await _unitOfWork.DonationOpportunity
+
+                .GetAsync(o => o.Id == id);
+
+            if (opportunity == null)
+                return NotFound("Donation Opportunity not found");
+
+            // Increase page visits when retrieved
+            opportunity.PageVisits++;
+
+            var returnOpportunity=_mapper.Map<ResponseDonationOpportunityDetailsDTO>(opportunity);
+            await _context.SaveChangesAsync();
+
+            return Ok(returnOpportunity);
+        }
+
+        
         // ✅ GET: api/DonationOpportunity (Get all opportunities)
         [HttpGet]
-        public async Task<IActionResult> GetAllOpportunities([FromQuery] OpportunityStatus? status = null)
+        public async Task<IActionResult> GetAllOpportunities([FromQuery] OpportunityStatus? status = null , [FromQuery] string? charityId = null)
         {
             var query = _context.DonationOpportunities
-                .Include(o => o.Category)
-                .Include(o => o.Charity)
                 .AsQueryable();
 
             if (status.HasValue)
@@ -39,97 +183,22 @@ namespace WaslAlkhair.Api.Controllers
                 query = query.Where(o => o.Status == status);
             }
 
-            var opportunities = await query.ToListAsync();
-            return Ok(opportunities);
-        }
-
-        // ✅ GET: api/DonationOpportunity/{id} (Get single opportunity)
-        [HttpGet("{id}")]
-        public async Task<IActionResult> GetOpportunityById(int id)
-        {
-            var opportunity = await _context.DonationOpportunities
-                .Include(o => o.Category)
-                .Include(o => o.Charity)
-                .FirstOrDefaultAsync(o => o.Id == id);
-
-            if (opportunity == null)
-                return NotFound("Donation Opportunity not found");
-
-            // Increase page visits when retrieved
-            opportunity.PageVisits++;
-            await _context.SaveChangesAsync();
-
-            return Ok(opportunity);
-        }
-
-        // ✅ POST: api/DonationOpportunity (Create a new opportunity)
-        [HttpPost]
-        public async Task<IActionResult> CreateOpportunity([FromForm] CreateDonationOpportunityDTO dto) 
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            // Ensure the charity exists before assigning the opportunity
-            var charity = await _context.Users.FindAsync(dto.CharityId);
-            if (charity == null)
-                return NotFound("Charity not found");
-
-            var opportunity = new DonationOpportunity
+            if (charityId!=null)
             {
-                CharityId = charity.Id,
-                CategoryId = dto.CategoryId,
-                Title=dto.Title,
-                Description=dto.Description,
-            };
-            string? imagePath = null;
-            if (dto.ImageUrl != null)
-            {
-                imagePath = await _fileStorageService.UploadFileAsync(
-                    dto.ImageUrl,
-                    "DonationOPP"
-                );
+                query = query.Where(o => o.CharityId == charityId);
             }
 
-            opportunity.ImageUrl = imagePath;
+            var opportunities = await query.ToListAsync();
 
-            _context.DonationOpportunities.Add(opportunity);
-            await _context.SaveChangesAsync();
+            var returnOpportunities = _mapper.Map<List<ResponseAllDonationOpportunities>>(opportunities);
 
-            return Ok();
+            return Ok(returnOpportunities);
         }
 
-        // ✅ PUT: api/DonationOpportunity/{id} (Update opportunity)
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateOpportunity(int id, [FromBody] DonationOpportunity updatedOpportunity)
-        {
-            var opportunity = await _context.DonationOpportunities.FindAsync(id);
-            if (opportunity == null)
-                return NotFound("Opportunity not found");
+               
+        
 
-            // Update only the allowed fields
-            opportunity.Title = updatedOpportunity.Title;
-            opportunity.Description = updatedOpportunity.Description;
-            opportunity.TargetAmount = updatedOpportunity.TargetAmount;
-            opportunity.Deadline = updatedOpportunity.Deadline;
-            opportunity.Status = updatedOpportunity.Status;
-            opportunity.UpdatedAt = DateTime.UtcNow;
 
-            await _context.SaveChangesAsync();
-            return Ok(opportunity);
-        }
 
-        // ✅ DELETE: api/DonationOpportunity/{id} (Delete opportunity)
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteOpportunity(int id)
-        {
-            var opportunity = await _context.DonationOpportunities.FindAsync(id);
-            if (opportunity == null)
-                return NotFound("Opportunity not found");
-
-            _context.DonationOpportunities.Remove(opportunity);
-            await _context.SaveChangesAsync();
-
-            return Ok("Opportunity deleted successfully");
-        }
     }
 }

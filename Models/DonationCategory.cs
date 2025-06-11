@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 
 namespace WaslAlkhair.Api.Models
 {
@@ -14,6 +14,8 @@ namespace WaslAlkhair.Api.Models
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow; 
         public string ImageUrl { get; set; }
+
+        public bool IsDeleted { get; set; } = false;
 
         // Navigation property للربط مع فرص التبرع
         public ICollection<DonationOpportunity> DonationOpportunities { get; set; }

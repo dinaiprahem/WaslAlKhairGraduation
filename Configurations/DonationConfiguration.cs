@@ -29,7 +29,7 @@ namespace WaslAlkhair.Api.Data.Configurations
                 .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of the donor if donations exist
 
             builder.HasOne(d => d.Category)
-                .WithMany()
+                .WithMany(c => c.Donations)
                 .HasForeignKey(d => d.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of the category if donations exist
 
