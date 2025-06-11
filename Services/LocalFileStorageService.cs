@@ -3,13 +3,14 @@
     public class LocalFileStorageService : IFileService
     {
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private const string UploadsFolder = "uploads"; // Default folder name
 
         public LocalFileStorageService(IWebHostEnvironment webHostEnvironment)
         {
             _webHostEnvironment = webHostEnvironment;
         }
 
-        public async Task<string?> UploadFileAsync(IFormFile file, string folderName)
+        public async Task<string?> UploadFileAsync(IFormFile file)
         {
             if (file == null || file.Length == 0)
                 return null;
@@ -21,7 +22,7 @@
                 return null;
 
             var fileName = $"{Path.GetFileNameWithoutExtension(file.FileName)}_{Guid.NewGuid()}{extension}";
-            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, folderName);
+            var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, UploadsFolder);
 
             if (!Directory.Exists(uploadsFolder))
             {
@@ -34,12 +35,12 @@
                 await file.CopyToAsync(stream);
             }
 
-            return fileName; 
+            return $"uploads/{fileName}";
         }
 
-        public Task<bool> DeleteFileAsync(string fileName, string folderName)
+        public Task<bool> DeleteFileAsync(string fileName)
         {
-            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, folderName, fileName);
+            var filePath = Path.Combine(_webHostEnvironment.WebRootPath, UploadsFolder, fileName);
 
             if (File.Exists(filePath))
             {

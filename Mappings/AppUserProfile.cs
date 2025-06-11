@@ -19,21 +19,18 @@ namespace WaslAlkhair.Api.Profiles
                          : (DateOnly?)null))
                  .ForMember(dest => dest.CreatedAt, opt => opt.MapFrom(_ => DateTime.UtcNow)); // Set CreatedAt to current UTC time
 
-		
+
 
             /////----- Login ------////
             //  AppUser -> UserDTO
             CreateMap<AppUser, UserDTO>()
-                .ForMember(dest => dest.Age, opt => opt.MapFrom(src => CalculateAge(src.DateOfBirth)))
-                .ForMember(dest => dest.Image, opt => opt.MapFrom(src =>
-                    src.image != null ? $"/user-profilePicture/{src.image}" : null));
+                .ForMember(dest => dest.Age, opt => opt.MapFrom(src => CalculateAge(src.DateOfBirth)));
+
 
             //  AppUser -> CharityDTO
             CreateMap<AppUser, CharityDTO>()
                  .ForMember(dest => dest.CharityName, opt => opt.MapFrom(src => src.FullName))
-                 .ForMember(dest => dest.EstablishedAt, opt => opt.MapFrom(src => src.DateOfBirth))
-                 .ForMember(dest => dest.Image, opt => opt.MapFrom(src =>
-                    src.image != null ? $"/charity-logos/{src.image}" : null));
+                 .ForMember(dest => dest.EstablishedAt, opt => opt.MapFrom(src => src.DateOfBirth));
 
             //  AppUser -> AdminDTO
             CreateMap<AppUser, AdminDTO>();

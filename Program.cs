@@ -144,7 +144,7 @@ builder.Services.AddTransient<EmailService>();
 builder.Services.AddTransient<ISMSService,SMSService>();
 builder.Services.AddSingleton<ITokenBlacklist, TokenBlacklist>();
 builder.Services.AddScoped<IOpportunityRepository, OpportunityRepository>();
-builder.Services.AddScoped<IFileService, LocalFileStorageService>();
+builder.Services.AddScoped<IFileService, CloudinaryFileService>();
 builder.Services.AddScoped<IDonationCategoryRepository, DonationCategoryRepository>();
 builder.Services.AddScoped<IDonationOpportunityRepository, DonationOpportunityRepository>();
 

@@ -132,7 +132,7 @@ namespace WaslAlkhair.Api.Repositories
             // Handle image upload
             if (dto.Image != null)
             {
-                var imagePath = await fileService.UploadFileAsync(dto.Image, "charity-logos");
+                var imagePath = await fileService.UploadFileAsync(dto.Image);
                 charity.image = imagePath;
             }
 
@@ -150,7 +150,7 @@ namespace WaslAlkhair.Api.Repositories
             // Handle image upload
             if (dto.Image != null)
             {
-                var imagePath = await fileService.UploadFileAsync(dto.Image, "user-profilePicture");
+                var imagePath = await fileService.UploadFileAsync(dto.Image);
                 user.image = imagePath;
             }
 

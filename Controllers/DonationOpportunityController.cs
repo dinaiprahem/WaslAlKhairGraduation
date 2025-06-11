@@ -66,8 +66,7 @@ namespace WaslAlkhair.Api.Controllers
             if (dto.ImageUrl != null)
             {
                 imagePath = await fileStorageService.UploadFileAsync(
-                    dto.ImageUrl,
-                    "DonationOPP"
+                    dto.ImageUrl
                 );
             }
 
@@ -125,11 +124,11 @@ namespace WaslAlkhair.Api.Controllers
                 // Delete old image if exists
                 if (!string.IsNullOrEmpty(opportunity.ImageUrl))
                 {
-                    await fileStorageService.DeleteFileAsync(opportunity.ImageUrl, "DonationOPP");
+                    await fileStorageService.DeleteFileAsync(opportunity.ImageUrl);
 
                 }
                 // ارفع الصورة إلى Cloudinary أو أي خدمة صور
-                var imageUrl = await fileStorageService.UploadFileAsync(dto.Image , "DonationOPP");
+                var imageUrl = await fileStorageService.UploadFileAsync(dto.Image );
                 opportunity.ImageUrl = imageUrl;
             }
 

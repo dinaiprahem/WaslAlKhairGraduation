@@ -136,8 +136,7 @@ namespace WaslAlkhair.Api.Controllers
                 if (request.Image != null)
                 {
                     imagePath = await _fileStorageService.UploadFileAsync(
-                        request.Image,
-                        "charity-logos"
+                        request.Image
                     );
                 }
 
@@ -268,7 +267,7 @@ namespace WaslAlkhair.Api.Controllers
                 }
                 if (Charity.image != null)
                 {
-                    await _fileStorageService.DeleteFileAsync(Charity.image, "charity-logos");
+                    await _fileStorageService.DeleteFileAsync(Charity.image);
                 }
 
                 _response.StatusCode = HttpStatusCode.OK;

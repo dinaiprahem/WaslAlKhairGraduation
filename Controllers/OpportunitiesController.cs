@@ -140,7 +140,7 @@ public class OpportunitiesController : ControllerBase
             // Handle image upload
             if (dto.Image != null)
             {
-                var imagePath = await _fileStorageService.UploadFileAsync(dto.Image, "opp-imgs");
+                var imagePath = await _fileStorageService.UploadFileAsync(dto.Image);
                 if (string.IsNullOrEmpty(imagePath))
                 {
                     _response.StatusCode = HttpStatusCode.InternalServerError;
@@ -204,7 +204,7 @@ public class OpportunitiesController : ControllerBase
             // Delete the associated image if it exists
             if (!string.IsNullOrEmpty(opportunity.PhotoUrl))
             {
-                await _fileStorageService.DeleteFileAsync(opportunity.PhotoUrl, "opp-imgs");
+                await _fileStorageService.DeleteFileAsync(opportunity.PhotoUrl);
             }
 
             _context.Opportunities.Remove(opportunity);
@@ -271,11 +271,11 @@ public class OpportunitiesController : ControllerBase
                 // Delete the old image if it exists
                 if (!string.IsNullOrEmpty(existingOpportunity.PhotoUrl))
                 {
-                    await _fileStorageService.DeleteFileAsync(existingOpportunity.PhotoUrl, "opp-imgs");
+                    await _fileStorageService.DeleteFileAsync(existingOpportunity.PhotoUrl);
                 }
 
                 // Upload the new image
-                var imagePath = await _fileStorageService.UploadFileAsync(dto.Image, "opp-imgs");
+                var imagePath = await _fileStorageService.UploadFileAsync(dto.Image);
                 if (string.IsNullOrEmpty(imagePath))
                 {
                     _response.StatusCode = HttpStatusCode.InternalServerError;

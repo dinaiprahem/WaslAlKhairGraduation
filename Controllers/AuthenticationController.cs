@@ -184,8 +184,27 @@ namespace WaslAlkhair.Api.Controllers
                 }
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var resetLink = $"https://localhost:5001/api/Authentication/ValidateResetPasswordToken?email={request.Email}&token={Uri.EscapeDataString(token)}";
+
                 await _emailService.SendEmailAsync(user.Email, "Reset Your Password",
-                    $"<h3>Reset Password</h3><p>Click the link below to reset your password:</p><a href='{resetLink}'>Reset Password</a>");
+                                 $@"
+                                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
+                                    <h2 style='color: #333;'>Reset Your Password</h2>
+                                    <p style='font-size: 16px; color: #555;'>
+                                        You requested to reset your password. Click the button below to proceed:
+                                    </p>
+                                    <a href='{resetLink}' style='display: inline-block; padding: 12px 20px; margin-top: 15px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;'>
+                                        Reset Password
+                                    </a>
+                                    <p style='margin-top: 20px; font-size: 14px; color: #999;'>
+                                        If you did not request this, please ignore this email.
+                                    </p>
+                                    <hr style='margin: 30px 0;' />
+                                    <p style='font-size: 12px; color: #aaa;'>
+                                        &copy; 2025 GoGreen Store. All rights reserved.
+                                    </p>
+                                </div>
+                                ");
+
                 return Ok(new { message = "A password reset link has been sent to your email. Please check your inbox." });
 
             }

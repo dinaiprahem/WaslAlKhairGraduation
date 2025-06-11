@@ -144,8 +144,7 @@ namespace WaslAlkhair.Api.Controllers
                 if (dto.ImageUrl != null)
                 {
                     imagePath = await fileStorageService.UploadFileAsync(
-                        dto.ImageUrl,
-                        "DonationOPP"
+                        dto.ImageUrl
                     );
                 }
 
@@ -205,13 +204,12 @@ namespace WaslAlkhair.Api.Controllers
                     // Delete old image if exists
                     if (!string.IsNullOrEmpty(category.ImageUrl))
                     {
-                        await fileStorageService.DeleteFileAsync(category.ImageUrl ,"DonationOPP");
+                        await fileStorageService.DeleteFileAsync(category.ImageUrl );
                        
                     }
                     // Upload new image
                     category.ImageUrl = await fileStorageService.UploadFileAsync(
-                        updatedCategory.ImageUrl,
-                        "DonationOPP"
+                        updatedCategory.ImageUrl
                     );
                 }
 

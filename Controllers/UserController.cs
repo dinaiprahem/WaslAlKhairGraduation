@@ -140,7 +140,7 @@ namespace WaslAlkhair.Api.Controllers
                 }
                 if (user.image != null)
                 {
-                    await _fileStorageService.DeleteFileAsync(user.image, "user-profilePicture");
+                    await _fileStorageService.DeleteFileAsync(user.image);
                 }
 
                 _response.StatusCode = HttpStatusCode.OK;
