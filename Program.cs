@@ -57,7 +57,7 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
     options.EnableAnnotations();
-   
+
 });
 
 //Add DataBase
@@ -106,7 +106,7 @@ builder.Services.AddAuthentication(options =>
     options.CallbackPath = "/signin-google"; // Redirect URI
 });
 
-//Customize the API Response for Validation Errors 
+//Customize the API Response for Validation Errors
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
     options.InvalidModelStateResponseFactory = context =>
@@ -141,7 +141,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<APIResponse>();
 builder.Services.AddScoped<JWTmodel>();
 builder.Services.AddTransient<EmailService>();
-builder.Services.AddTransient<ISMSService,SMSService>();
+builder.Services.AddTransient<ISMSService, TwilioSMSService>();
 builder.Services.AddSingleton<ITokenBlacklist, TokenBlacklist>();
 builder.Services.AddScoped<IOpportunityRepository, OpportunityRepository>();
 builder.Services.AddScoped<IFileService, CloudinaryFileService>();
@@ -149,7 +149,7 @@ builder.Services.AddScoped<IDonationCategoryRepository, DonationCategoryReposito
 builder.Services.AddScoped<IDonationOpportunityRepository, DonationOpportunityRepository>();
 
 
-//Repositery 
+//Repositery
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOpportunityParticipationRepository, OpportunityParticipationRepository>();
 builder.Services.AddScoped<IAssistanceRepository, AssistanceRepository>();
