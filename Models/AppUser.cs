@@ -26,5 +26,8 @@ namespace WaslAlkhair.Api.Models
 		public ICollection<Opportunity> CreatedOpportunities { get; set; } = new List<Opportunity>();
 		//every user can create many assistances
 		public ICollection<Assistance> Assistances { get; set; } = new List<Assistance>();
-	}
+
+        public ICollection<UserReview> ReviewsGiven { get; set; } = new List<UserReview>();
+        public ICollection<UserReview> ReviewsReceived { get; set; } = new List<UserReview>();
+    }
 }

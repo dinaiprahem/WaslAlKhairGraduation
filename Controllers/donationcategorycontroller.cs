@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using WaslAlkhair.Api.Data;
 using WaslAlkhair.Api.Models;
@@ -32,19 +32,22 @@ namespace WaslAlkhair.Api.Controllers
         private readonly IMapper _mapper;
         private readonly ILogger<DonationCategoryController> _logger;
         private readonly APIResponse _response;
+        private readonly AppDbContext _context;
 
         public DonationCategoryController(
             IFileService fileStorageService,
             IUnitOfWork unitOfWork,
             IMapper mapper,
             ILogger<DonationCategoryController> logger,
-            APIResponse response)
+            APIResponse response,
+            AppDbContext context)
         {
             this.fileStorageService = fileStorageService;
             _unitOfWork = unitOfWork;
             _mapper = mapper;
             _logger = logger;
             _response = response;
+            _context = context;
         }
 
         // Get all categories
@@ -115,7 +118,7 @@ namespace WaslAlkhair.Api.Controllers
             }
         }
 
-        // Create a new category
+        //Create a new category
         [HttpPost]
         [SwaggerOperation(Summary = "Admin add a new Category")]
         [ProducesResponseType(StatusCodes.Status201Created, Type = typeof(APIResponse))]
@@ -129,7 +132,20 @@ namespace WaslAlkhair.Api.Controllers
                 if (!ModelState.IsValid)
                 {
                     _response.IsSuccess = false;
-                    _response.ErrorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    _response.ErrorMessages = ModelState.Values.SelectMany(v => v.Errors)
+                                                               .Select(e => e.ErrorMessage)
+                                                               .ToList();
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    return BadRequest(_response);
+                }
+
+                // ✅ Check for duplicate name
+                var existingCategory = await _context.DonationCategories.FirstOrDefaultAsync(c => c.Name == dto.Name && !c.IsDeleted);
+
+                if (existingCategory != null)
+                {
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("Category name is already exist.");
                     _response.StatusCode = HttpStatusCode.BadRequest;
                     return BadRequest(_response);
                 }
@@ -143,9 +159,7 @@ namespace WaslAlkhair.Api.Controllers
                 string? imagePath = null;
                 if (dto.ImageUrl != null)
                 {
-                    imagePath = await fileStorageService.UploadFileAsync(
-                        dto.ImageUrl
-                    );
+                    imagePath = await fileStorageService.UploadFileAsync(dto.ImageUrl);
                 }
 
                 category.ImageUrl = imagePath;
@@ -160,13 +174,14 @@ namespace WaslAlkhair.Api.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching category");
+                _logger.LogError(ex, "Error occurred while creating category");
                 _response.IsSuccess = false;
                 _response.ErrorMessages.Add(ex.Message);
                 _response.StatusCode = HttpStatusCode.InternalServerError;
                 return StatusCode((int)_response.StatusCode, _response);
             }
         }
+
 
         // Update category
         [HttpPut("{id}")]

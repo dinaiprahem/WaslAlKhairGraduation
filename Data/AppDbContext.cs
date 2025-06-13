@@ -16,6 +16,8 @@ namespace WaslAlkhair.Api.Data
         public DbSet<GiftDonation> GiftDonation { get; set; }
 		public DbSet<Assistance> Assistances { get; set; }
 		public DbSet<AssistanceType> AssistanceTypes { get; set; }
+        public DbSet<UserReview> UserReviews { get; set; }
+
 
 
 
@@ -34,6 +36,8 @@ namespace WaslAlkhair.Api.Data
             modelBuilder.ApplyConfiguration(new DonationConfiguration());
             modelBuilder.ApplyConfiguration(new DonationDistributionConfiguration());
             modelBuilder.ApplyConfiguration(new GiftDonationConfiguration());
+            modelBuilder.ApplyConfiguration(new DonationCategoryConfiguration());
+            modelBuilder.ApplyConfiguration(new UserReviewConfiguration());
 
         }
 

@@ -15,8 +15,8 @@ namespace WaslAlkhair.Api.Data.Configurations
 
             // Name is required and has a max length of 100
             builder.Property(c => c.Name)
-                .IsRequired()
-                .HasMaxLength(100);
+                .IsRequired();
+               // .HasMaxLength(100);
 
             // Description is optional
             builder.Property(c => c.Description)
