@@ -1,6 +1,24 @@
 @WaslAlkhair.Api_HostAddress = http://localhost:5252
+@baseUrl = https://localhost:7001
+@apiVersion = 1.0
 
 GET {{WaslAlkhair.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+### Search for opportunities, donations, and assistance
+GET {{baseUrl}}/api/search?query=test
+Accept: application/json
+
+### Search with empty query
+GET {{baseUrl}}/api/search?query=
+Accept: application/json
+
+### Search with specific term
+GET {{baseUrl}}/api/search?query=volunteer
+Accept: application/json
+
+### Search with another term
+GET {{baseUrl}}/api/search?query=donation
 Accept: application/json
 
 ###

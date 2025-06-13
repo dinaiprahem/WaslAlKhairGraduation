@@ -154,6 +154,7 @@ builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOpportunityParticipationRepository, OpportunityParticipationRepository>();
 builder.Services.AddScoped<IAssistanceRepository, AssistanceRepository>();
 builder.Services.AddScoped<IAssistanceTypeRepository, AssistanceTypeRepository>();
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 
 var app = builder.Build();
