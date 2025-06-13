@@ -12,7 +12,6 @@ namespace WaslAlkhair.Api.Services
         {
             _twilioSettings = twilioSettings.Value;
 
-
         }
         public MessageResource Send(string mobileNumber, string body)
         {

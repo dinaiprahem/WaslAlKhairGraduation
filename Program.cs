@@ -21,6 +21,18 @@ using WaslAlkhair.Api.MappingProfiles;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Add CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              ;
+    });
+});
+
 // Add services to the container.
 
 builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twilio"));
@@ -106,6 +118,8 @@ builder.Services.AddAuthentication(options =>
     options.CallbackPath = "/signin-google"; // Redirect URI
 });
 
+
+
 //Customize the API Response for Validation Errors 
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
@@ -124,6 +138,7 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
         return new BadRequestObjectResult(response);
     };
 });
+
 
 //AutoMapper
 builder.Services.AddAutoMapper(typeof(AppUserProfile));
@@ -165,6 +180,7 @@ var app = builder.Build();
     app.UseSwagger();
     app.UseSwaggerUI();
 //}
+app.UseCors("AllowAll");
 
 //app.UseMiddleware<JwtMiddleware>();
 app.UseStaticFiles(); // Enables serving static files from wwwroot
