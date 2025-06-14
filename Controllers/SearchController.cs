@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using WaslAlkhair.Api.DTOs;
+using WaslAlkhair.Api.DTOs.HomeSearch;
 using WaslAlkhair.Api.Services;
 
 namespace WaslAlkhair.Api.Controllers
