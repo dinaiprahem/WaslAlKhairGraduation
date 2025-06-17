@@ -183,7 +183,7 @@ namespace WaslAlkhair.Api.Controllers
                     return BadRequest(new { message = "Invalid payload" });
                 }
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-                var resetLink = $"https://localhost:5001/api/Authentication/ValidateResetPasswordToken?email={request.Email}&token={Uri.EscapeDataString(token)}";
+                var resetLink = $"http://localhost:5173/ResetPassword?email={request.Email}&token={Uri.EscapeDataString(token)}";
 
                 await _emailService.SendEmailAsync(user.Email, "Reset Your Password",
                                  $@"
