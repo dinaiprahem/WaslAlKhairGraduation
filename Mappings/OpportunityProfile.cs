@@ -10,7 +10,9 @@ namespace WaslAlkhair.Api.Profiles
         public OpportunityProfile()
         {
             // Mapping for nested properties
-            CreateMap<AppUser, UserDto>(); // Map AppUser to UserDto
+            CreateMap<AppUser, UserDto>();// Map AppUser to UserDto
+
+
             CreateMap<OpportunityParticipation, ParticipationDto>(); // Map OpportunityParticipation to ParticipationDto
             CreateMap<OpportunitySearchDto, OpportunitySearchParams>();
 

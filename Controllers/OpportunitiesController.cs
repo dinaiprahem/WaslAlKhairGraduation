@@ -12,6 +12,7 @@ using WaslAlkhair.Api.Repositories;
 using AutoMapper;
 using Azure.Core;
 using WaslAlkhair.Api.Services;
+using Microsoft.AspNetCore.Identity;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -22,14 +23,17 @@ public class OpportunitiesController : ControllerBase
     private readonly APIResponse _response;
     private readonly IMapper _mapper;
     private readonly IFileService _fileStorageService;
+    private readonly UserManager<AppUser> _userManager;
 
-    public OpportunitiesController(AppDbContext context, IOpportunityRepository repository, IMapper mapper, IFileService fileStorageService)
+    public OpportunitiesController(AppDbContext context, IOpportunityRepository repository, IMapper mapper,
+        IFileService fileStorageService, UserManager<AppUser> userManager)
     {
         _repository = repository;
         _context = context;
         _response = new APIResponse();
         _mapper = mapper;
         _fileStorageService = fileStorageService;
+        _userManager = userManager;
     }
 
     // Get All Opportunities
@@ -41,8 +45,10 @@ public class OpportunitiesController : ControllerBase
         try
         {
             var opportunities = await _context.Opportunities
-                .Include(o => o.CreatedBy)
-                .ToListAsync();
+                            .Include(o => o.CreatedBy)
+                            .Where(o => o.IsClosed == false)
+                            .ToListAsync();
+
 
             if (opportunities == null || !opportunities.Any())
             {
@@ -54,6 +60,24 @@ public class OpportunitiesController : ControllerBase
 
             var opportunityDtos = _mapper.Map<List<OpportunityDto>>(opportunities);
 
+            foreach (var opportunityDto in opportunityDtos)
+            {
+                var user = opportunities
+                    .FirstOrDefault(o => o.Id == opportunityDto.Id)?
+                    .CreatedBy;
+
+                if (user != null)
+                {
+                    string role;
+                    var roles = await _userManager.GetRolesAsync(user);
+                    if (roles.FirstOrDefault() == "User")
+                        role = "فرد";
+                    else
+                        role = "جمعيه";
+
+                    opportunityDto.CreatedBy.Role = role;
+                }
+            }
             _response.StatusCode = HttpStatusCode.OK;
             _response.Result = opportunityDtos;
             return Ok(_response);
