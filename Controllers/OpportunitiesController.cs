@@ -195,7 +195,7 @@ public class OpportunitiesController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
-    [Authorize]
+    //[Authorize]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -216,7 +216,7 @@ public class OpportunitiesController : ControllerBase
             // Get the current user's ID
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            // Check if the current user is the creator of the opportunity
+           // Check if the current user is the creator of the opportunity
             if (opportunity.CreatedById != userId)
             {
                 _response.StatusCode = HttpStatusCode.Forbidden;
@@ -224,7 +224,7 @@ public class OpportunitiesController : ControllerBase
                 _response.ErrorMessages.Add("You don't have permission to delete this opportunity.");
                 return StatusCode(403, _response);
             }
-
+         
             // Delete the associated image if it exists
             if (!string.IsNullOrEmpty(opportunity.PhotoUrl))
             {
