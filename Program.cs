@@ -18,7 +18,6 @@ using WaslAlkhair.Api.Services;
 using WaslAlkhair.Api.Mappings;
 using WaslAlkhair.Api.MappingProfiles;
 
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add CORS
@@ -143,16 +142,12 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 //AutoMapper
 builder.Services.AddAutoMapper(typeof(AppUserProfile));
 builder.Services.AddAutoMapper(typeof(OpportunityProfile));
-
 builder.Services.AddAutoMapper(typeof(MappingProfile));
-
 builder.Services.AddAutoMapper(typeof(AssistanceProfile));
 builder.Services.AddAutoMapper(typeof(AssistanceTypeProfile));
 
-
 //Repositeries
 builder.Services.AddScoped<IUserRepository, UserRepository>();
-
 builder.Services.AddScoped<APIResponse>();
 builder.Services.AddScoped<JWTmodel>();
 builder.Services.AddTransient<EmailService>();
@@ -163,16 +158,14 @@ builder.Services.AddScoped<IFileService, CloudinaryFileService>();
 builder.Services.AddScoped<IDonationCategoryRepository, DonationCategoryRepository>();
 builder.Services.AddScoped<IDonationOpportunityRepository, DonationOpportunityRepository>();
 
-
 //Repositery
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOpportunityParticipationRepository, OpportunityParticipationRepository>();
 builder.Services.AddScoped<IAssistanceRepository, AssistanceRepository>();
 builder.Services.AddScoped<IAssistanceTypeRepository, AssistanceTypeRepository>();
-
+builder.Services.AddScoped<ISearchService, SearchService>();
 
 var app = builder.Build();
-
 
 // Configure the HTTP request pipeline.
 //if (app.Environment.IsDevelopment())
