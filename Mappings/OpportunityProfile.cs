@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 
 using WaslAlkhair.Api.DTOs.Opportunity;
+using WaslAlkhair.Api.DTOs.OpportunityParticipation;
 using WaslAlkhair.Api.Models;
 
 namespace WaslAlkhair.Api.Profiles
@@ -26,6 +27,11 @@ namespace WaslAlkhair.Api.Profiles
 
             // Mapping from UpdateOpportunityDto to Opportunity
             CreateMap<UpdateOpportunityDto, Opportunity>();
+
+
+            // ParticipationAdd 
+            CreateMap<CreateOpportunityParticipation, OpportunityParticipation>();
+            CreateMap<OpportunityParticipation, ResponsOpportunityParticipation>();
         }
     }
 }

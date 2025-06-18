@@ -26,40 +26,49 @@ namespace WaslAlkhair.Api.Controllers
 
 
 
+        [Authorize(Roles = "User")]
         [HttpPost("/api/opportunities/{opportunityId}/participation")]
-        [SwaggerOperation(Summary = "Apply for an opportunity")]
-        public async Task<IActionResult>Apply(CreateOpportunityParticipation dto)
-        { 
-
-            var participation = mapper.Map<OpportunityParticipation>(dto);
-
-            await _unitOfWork.OpportunityParticipation.CreateAsync(participation);
-            await _unitOfWork.SaveAsync(); 
-
-            var toReturn= mapper.Map<ResponsOpportunityParticipation>(participation);
-            return CreatedAtAction(nameof(GetParticipationDetails), new { id = participation.Id }, toReturn);
-        }
-
-     
-
-        [HttpDelete("{id}")]
-       // [Authorize(Roles = "User,Admin")]
-        public async Task<IActionResult> DeleteParticipation(int id)
+        [SwaggerOperation(Summary = "Apply for an opportunity by an authenticated user")]
+        public async Task<IActionResult> Apply(int opportunityId, [FromBody] CreateOpportunityParticipation dto)
         {
-            var participation = await _unitOfWork.OpportunityParticipation.GetAsync(p => p.Id == id);
-            if (participation == null)
-                return NotFound();
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            /*
-            // Only the user who applied or an admin can delete it
-            if (User.IsInRole("User") && userId != participation.AppUserId)
-                return Forbid();
-           */
-            _unitOfWork.OpportunityParticipation.Delete(participation);
-            await _unitOfWork.SaveAsync();
+            if (string.IsNullOrEmpty(userId))
+                return Unauthorized("User ID not found in token.");
 
-            return NoContent();
+            if (dto.OpportunityId != opportunityId)
+                return BadRequest("Opportunity ID in route and body do not match.");
+
+            try
+            {
+                // ✅ Check if user already applied to this opportunity
+                var existingParticipation = await _unitOfWork.OpportunityParticipation
+                    .GetAsync(p => p.AppUserId == userId && p.OpportunityId == opportunityId);
+
+                if (existingParticipation != null)
+                    return Conflict("You have already applied for this opportunity.");
+
+                // Map and fill fields
+                var participation = mapper.Map<OpportunityParticipation>(dto);
+                participation.AppUserId = userId;
+                participation.ProcessNationalId(); // auto calculate Age, Gender
+
+                await _unitOfWork.OpportunityParticipation.CreateAsync(participation);
+                await _unitOfWork.SaveAsync();
+
+                var toReturn = mapper.Map<ResponsOpportunityParticipation>(participation);
+                return CreatedAtAction(nameof(GetParticipationDetails), new { id = participation.Id }, toReturn);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new
+                {
+                    message = "opportunity doesn't exist",
+                    //details = ex.Message // remove in production
+                });
+            }
         }
 
 

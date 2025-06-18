@@ -40,15 +40,21 @@ public class OpportunitiesController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<APIResponse>> GetOpportunities()
+    public async Task<ActionResult<APIResponse>> GetOpportunities([FromQuery] string? charityId)
     {
         try
         {
-            var opportunities = await _context.Opportunities
-                            .Include(o => o.CreatedBy)
-                            .Where(o => o.IsClosed == false)
-                            .ToListAsync();
+            var query = _context.Opportunities
+                .Include(o => o.CreatedBy)
+                .Where(o => o.IsClosed == false);
 
+            // Apply filter if charityId is provided
+            if (!string.IsNullOrEmpty(charityId))
+            {
+                query = query.Where(o => o.CreatedBy.Id == charityId);
+            }
+
+            var opportunities = await query.ToListAsync();
 
             if (opportunities == null || !opportunities.Any())
             {
@@ -70,14 +76,12 @@ public class OpportunitiesController : ControllerBase
                 {
                     string role;
                     var roles = await _userManager.GetRolesAsync(user);
-                    if (roles.FirstOrDefault() == "User")
-                        role = "فرد";
-                    else
-                        role = "جمعيه";
+                    role = roles.FirstOrDefault() == "User" ? "فرد" : "جمعيه";
 
                     opportunityDto.CreatedBy.Role = role;
                 }
             }
+
             _response.StatusCode = HttpStatusCode.OK;
             _response.Result = opportunityDtos;
             return Ok(_response);
@@ -90,6 +94,7 @@ public class OpportunitiesController : ControllerBase
             return StatusCode(500, _response);
         }
     }
+
 
     [HttpGet("{id:int}", Name = "GetOpportunity")]
     [ProducesResponseType(StatusCodes.Status200OK)]

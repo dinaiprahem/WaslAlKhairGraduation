@@ -161,7 +161,7 @@ namespace WaslAlkhair.Api.Controllers
                 return NotFound("Donation Opportunity not found");
 
             // Increase page visits when retrieved
-            opportunity.PageVisits++;
+            //opportunity.PageVisits++;
 
             var returnOpportunity=_mapper.Map<ResponseDonationOpportunityDetailsDTO>(opportunity);
             await _context.SaveChangesAsync();
