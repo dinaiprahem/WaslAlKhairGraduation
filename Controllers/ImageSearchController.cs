@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using WaslAlkhair.Api.Services;
 using System.Linq;
+using WaslAlkhair.Api.Repositories.Interfaces;
 
 namespace WaslAlkhair.Api.Controllers
 {

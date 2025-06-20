@@ -160,6 +160,12 @@ builder.Services.AddScoped<IDonationOpportunityRepository, DonationOpportunityRe
 builder.Services.AddScoped<IImageSearchService, CLIPImageSearchService>();
 builder.Services.AddScoped<IImageRepository, ImageRepository>();
 
+// Register HttpClient
+builder.Services.AddHttpClient();
+// Add your configuration
+//builder.Services.Configure<HuggingFaceOptions>(
+ //   builder.Configuration.GetSection("HuggingFace"));
+
 //Repositery
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IOpportunityParticipationRepository, OpportunityParticipationRepository>();
