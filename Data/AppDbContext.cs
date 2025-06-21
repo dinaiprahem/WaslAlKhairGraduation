@@ -18,7 +18,7 @@ namespace WaslAlkhair.Api.Data
 		public DbSet<Assistance> Assistances { get; set; }
 		public DbSet<AssistanceType> AssistanceTypes { get; set; }
         public DbSet<UserReview> UserReviews { get; set; }
-        public DbSet<ImageEntity> Images { get; set; }
+        public DbSet<LostItem> LostItems { get; set; }
 
 
 
@@ -39,16 +39,8 @@ namespace WaslAlkhair.Api.Data
             modelBuilder.ApplyConfiguration(new GiftDonationConfiguration());
             modelBuilder.ApplyConfiguration(new DonationCategoryConfiguration());
             modelBuilder.ApplyConfiguration(new UserReviewConfiguration());
-            modelBuilder.Entity<ImageEntity>(entity =>
-            {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.ImagePath).IsRequired().HasMaxLength(500);
-                entity.Property(e => e.Embedding).HasColumnType("nvarchar(max)");
-                entity.Property(e => e.Metadata).HasMaxLength(1000);
-                entity.Property(e => e.CreatedAt).IsRequired();
-                entity.HasIndex(e => e.CreatedAt);
-            });
-
+            modelBuilder.ApplyConfiguration(new LostItemConfiguration());
+			
         }
 
         public override int SaveChanges()

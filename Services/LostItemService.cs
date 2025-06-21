@@ -1,53 +1,42 @@
 ﻿using System.Text.Json;
 using System.Text;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text.Json;
-using System.Threading.Tasks;
+using WaslAlkhair.Api.Repositories.Interfaces;
+using WaslAlkhair.Api.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.EntityFrameworkCore;
-using WaslAlkhair.Api.Data;
-using System.Net.Http;
-using System.Text;
-using WaslAlkhair.Api.Repositories.Interfaces;
 using WaslAlkhair.Api.DTOs.LostANDfound;
 
 namespace WaslAlkhair.Api.Services
 {
-    public class CLIPImageSearchService : IImageSearchService
+    public class LostItemService : ILostItemService
     {
-        private readonly ILogger<CLIPImageSearchService> _logger;
+        private readonly ILogger<LostItemService> _logger;
         private readonly string _flaskApiUrl;
-        private readonly IImageRepository _imageRepository;
+        private readonly ILostItemRepository _itemRepository;
         private readonly IFileService _cloudinaryService;
         private readonly HttpClient _httpClient;
         private readonly int _timeoutSeconds;
 
-        public CLIPImageSearchService(
-            ILogger<CLIPImageSearchService> logger,
+        public LostItemService(
+            ILogger<LostItemService> logger,
             IConfiguration configuration,
-            IImageRepository imageRepository,
+            ILostItemRepository itemRepository,
             IFileService cloudinaryService,
             HttpClient httpClient)
         {
             _logger = logger;
             _flaskApiUrl = configuration["FlaskApi:BaseUrl"] ?? "https://norhannnabil-clip-image-search.hf.space";
             _timeoutSeconds = configuration.GetValue<int>("FlaskApi:TimeoutSeconds", 120);
-            _imageRepository = imageRepository;
+            _itemRepository = itemRepository;
             _cloudinaryService = cloudinaryService;
             _httpClient = httpClient;
 
-            // Configure HttpClient timeout
             _httpClient.Timeout = TimeSpan.FromSeconds(_timeoutSeconds);
-
-            _logger.LogInformation($"CLIPImageSearchService initialized with Flask API URL: {_flaskApiUrl}");
+            _logger.LogInformation($"LostItemService initialized with Flask API URL: {_flaskApiUrl}");
         }
 
-        public async Task<StoredImage> UploadAndProcessImageAsync(IFormFile image, string metadata = null)
+        public async Task<LostItem> CreateItemWithImageAsync(IFormFile image, string metadata, string location, DateTime date, ItemType type, string contactInfo, string userId)
         {
             try
             {
@@ -74,25 +63,31 @@ namespace WaslAlkhair.Api.Services
                     return null;
                 }
 
-                // Create stored image object
-                var storedImage = new StoredImage
+                // Create lost item object
+                var lostItem = new LostItem
                 {
                     Id = Guid.NewGuid(),
                     ImagePath = cloudinaryUrl,
-                    Embedding = embedding,
+                    Embedding = JsonSerializer.Serialize(embedding),
                     Metadata = metadata,
-                    CreatedAt = DateTime.UtcNow
+                    Location = location,
+                    Date = date,
+                    Type = type,
+                    ContactInfo = contactInfo,
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    IsResolved = false
                 };
 
                 // Save to database
-                await _imageRepository.SaveImageWithEmbeddingAsync(storedImage);
+                await _itemRepository.SaveItemWithEmbeddingAsync(lostItem);
 
-                _logger.LogInformation($"Image uploaded and processed successfully: {storedImage.Id}");
-                return storedImage;
+                _logger.LogInformation($"Lost item created successfully: {lostItem.Id}");
+                return lostItem;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error uploading and processing image");
+                _logger.LogError(ex, "Error creating lost item with image");
                 return null;
             }
         }
@@ -101,7 +96,6 @@ namespace WaslAlkhair.Api.Services
         {
             try
             {
-                // Wait for the model to be ready
                 var isReady = await WaitForModelReadyAsync();
                 if (!isReady)
                 {
@@ -110,12 +104,7 @@ namespace WaslAlkhair.Api.Services
                 }
 
                 var base64Image = Convert.ToBase64String(imageData);
-
-                var requestData = new
-                {
-                    image = base64Image
-                };
-
+                var requestData = new { image = base64Image };
                 var jsonContent = JsonSerializer.Serialize(requestData);
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
@@ -132,13 +121,11 @@ namespace WaslAlkhair.Api.Services
                 var jsonDocument = JsonDocument.Parse(responseContent);
                 var jsonElement = jsonDocument.RootElement;
 
-                if (jsonElement.TryGetProperty("success", out var successElement) &&
-                    successElement.GetBoolean())
+                if (jsonElement.TryGetProperty("success", out var successElement) && successElement.GetBoolean())
                 {
                     if (jsonElement.TryGetProperty("features", out var featuresElement))
                     {
                         var features = new List<float>();
-
                         if (featuresElement.ValueKind == JsonValueKind.Array)
                         {
                             foreach (var item in featuresElement.EnumerateArray())
@@ -153,29 +140,8 @@ namespace WaslAlkhair.Api.Services
                         _logger.LogInformation($"Successfully extracted {features.Count} features from image");
                         return features;
                     }
-                    else
-                    {
-                        _logger.LogError("Features property not found in response");
-                        return null;
-                    }
                 }
-                else
-                {
-                    var error = jsonElement.TryGetProperty("error", out var errorElement)
-                        ? errorElement.GetString()
-                        : "Unknown error";
-                    _logger.LogError($"Failed to extract features: {error}");
-                    return null;
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "HTTP error while calling Flask API for image embedding");
-                return null;
-            }
-            catch (TaskCanceledException ex)
-            {
-                _logger.LogError(ex, "Timeout while calling Flask API for image embedding");
+
                 return null;
             }
             catch (Exception ex)
@@ -185,28 +151,37 @@ namespace WaslAlkhair.Api.Services
             }
         }
 
-        public async Task<List<SearchResult>> SearchSimilarImagesAsync(List<float> queryEmbedding)
+        public async Task<List<LostItemSearchResult>> SearchSimilarItemsAsync(List<float> queryEmbedding)
         {
             try
             {
-                var results = new List<SearchResult>();
-                var storedImages = await _imageRepository.GetAllImagesWithEmbeddingsAsync();
+                var results = new List<LostItemSearchResult>();
+                var storedItems = await _itemRepository.GetAllItemsWithEmbeddingsAsync();
 
-                foreach (var storedImage in storedImages)
+                foreach (var item in storedItems)
                 {
-                    if (storedImage.Embedding != null && storedImage.Embedding.Any())
+                    if (!string.IsNullOrEmpty(item.Embedding))
                     {
-                        var similarity = await CalculateSimilarityAsync(queryEmbedding, storedImage.Embedding);
-
-                        if (similarity > 0.7)
+                        var embedding = JsonSerializer.Deserialize<List<float>>(item.Embedding);
+                        if (embedding != null && embedding.Any())
                         {
-                            results.Add(new SearchResult
+                            var similarity = await CalculateSimilarityAsync(queryEmbedding, embedding);
+
+                            if (similarity > 0.7)
                             {
-                                ImageId = storedImage.Id,
-                                ImagePath = storedImage.ImagePath,
-                                Similarity = similarity,
-                                Metadata = storedImage.Metadata
-                            });
+                                results.Add(new LostItemSearchResult
+                                {
+                                    ItemId = item.Id,
+                                    ImagePath = item.ImagePath,
+                                    Similarity = similarity,
+                                    Metadata = item.Metadata,
+                                    Location = item.Location,
+                                    Date = item.Date,
+                                    Type = item.Type,
+                                    ContactInfo = item.ContactInfo,
+                                    IsResolved = item.IsResolved
+                                });
+                            }
                         }
                     }
                 }
@@ -215,8 +190,8 @@ namespace WaslAlkhair.Api.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error searching similar images");
-                return new List<SearchResult>();
+                _logger.LogError(ex, "Error searching similar items");
+                return new List<LostItemSearchResult>();
             }
         }
 
@@ -237,8 +212,6 @@ namespace WaslAlkhair.Api.Services
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    var errorContent = await response.Content.ReadAsStringAsync();
-                    _logger.LogError($"Flask API returned error status {response.StatusCode}: {errorContent}");
                     return 0.0;
                 }
 
@@ -246,8 +219,7 @@ namespace WaslAlkhair.Api.Services
                 var jsonDocument = JsonDocument.Parse(responseContent);
                 var jsonElement = jsonDocument.RootElement;
 
-                if (jsonElement.TryGetProperty("success", out var successElement) &&
-                    successElement.GetBoolean())
+                if (jsonElement.TryGetProperty("success", out var successElement) && successElement.GetBoolean())
                 {
                     if (jsonElement.TryGetProperty("similarity", out var similarityElement))
                     {
@@ -255,16 +227,6 @@ namespace WaslAlkhair.Api.Services
                     }
                 }
 
-                return 0.0;
-            }
-            catch (HttpRequestException ex)
-            {
-                _logger.LogError(ex, "HTTP error while calling Flask API for similarity calculation");
-                return 0.0;
-            }
-            catch (TaskCanceledException ex)
-            {
-                _logger.LogError(ex, "Timeout while calling Flask API for similarity calculation");
                 return 0.0;
             }
             catch (Exception ex)
@@ -290,23 +252,11 @@ namespace WaslAlkhair.Api.Services
                         var jsonDocument = JsonDocument.Parse(responseContent);
                         var jsonElement = jsonDocument.RootElement;
 
-                        if (jsonElement.TryGetProperty("ready", out var readyElement) &&
-                            readyElement.GetBoolean())
+                        if (jsonElement.TryGetProperty("ready", out var readyElement) && readyElement.GetBoolean())
                         {
                             _logger.LogInformation("Flask API model is ready");
                             return true;
                         }
-                        else
-                        {
-                            var error = jsonElement.TryGetProperty("error", out var errorElement)
-                                ? errorElement.GetString()
-                                : "Model not ready";
-                            _logger.LogWarning($"Flask API model not ready: {error}");
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"Flask API health check failed with status {response.StatusCode}");
                     }
                 }
                 catch (Exception ex)
@@ -314,14 +264,12 @@ namespace WaslAlkhair.Api.Services
                     _logger.LogError(ex, $"Error checking Flask API readiness (attempt {attempt}/{maxRetries})");
                 }
 
-                // Wait before retry (except on last attempt)
                 if (attempt < maxRetries)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(5));
                 }
             }
 
-            _logger.LogError("Flask API model is not ready after all retry attempts");
             return false;
         }
 
@@ -338,5 +286,4 @@ namespace WaslAlkhair.Api.Services
             }
         }
     }
-
 }

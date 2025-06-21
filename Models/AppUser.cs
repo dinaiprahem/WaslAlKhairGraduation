@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
+using static Twilio.Rest.Content.V1.ContentResource;
 
 namespace WaslAlkhair.Api.Models
 {
@@ -29,5 +30,6 @@ namespace WaslAlkhair.Api.Models
 
         public ICollection<UserReview> ReviewsGiven { get; set; } = new List<UserReview>();
         public ICollection<UserReview> ReviewsReceived { get; set; } = new List<UserReview>();
+        public ICollection<LostItem> LostItems { get; set; } = new List<LostItem>();
     }
 }

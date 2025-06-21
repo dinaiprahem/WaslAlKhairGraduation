@@ -157,8 +157,8 @@ builder.Services.AddScoped<IOpportunityRepository, OpportunityRepository>();
 builder.Services.AddScoped<IFileService, CloudinaryFileService>();
 builder.Services.AddScoped<IDonationCategoryRepository, DonationCategoryRepository>();
 builder.Services.AddScoped<IDonationOpportunityRepository, DonationOpportunityRepository>();
-builder.Services.AddScoped<IImageSearchService, CLIPImageSearchService>();
-builder.Services.AddScoped<IImageRepository, ImageRepository>();
+builder.Services.AddScoped<ILostItemService, LostItemService>();
+builder.Services.AddScoped<ILostItemRepository, LostItemRepository>();
 
 // Register HttpClient
 builder.Services.AddHttpClient();
