@@ -20,10 +20,18 @@ namespace WaslAlkhair.Api.Data.Configurations
             builder.Property(d => d.DonatedAt)
                 .HasDefaultValueSql("GETUTCDATE()");
 
+		//payment
+			builder.Property(d => d.StripeSessionId)
+				.HasMaxLength(255);
+
+			builder.Property(d => d.IsPaid)
+	           .HasDefaultValue(false); 
+			builder.Property(d => d.PaymentConfirmedAt)
+				.IsRequired(false); 
 
 
-            // Relationships
-            builder.HasOne(d => d.Donor)
+			// Relationships
+			builder.HasOne(d => d.Donor)
                 .WithMany()
                 .HasForeignKey(d => d.DonorId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent deletion of the donor if donations exist
