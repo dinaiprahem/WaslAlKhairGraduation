@@ -279,5 +279,30 @@ namespace WaslAlkhair.Api.Controllers
 
             await _context.SaveChangesAsync();
         }
-    }
+		//get all user donations 
+		[HttpGet("my-donations/summary")]
+		[Authorize]
+		public async Task<ActionResult> GetMyDonationSummary()
+		{
+			var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+			if (string.IsNullOrEmpty(userId))
+				return Unauthorized();
+            //without is paid 
+			var donations = await _context.Donations
+				.Where(d => d.DonorId == userId )
+				.ToListAsync();
+
+			var totalAmount = donations.Sum(d => d.Amount);
+			var count = donations.Count;
+
+			return Ok(new
+			{
+				TotalAmount = totalAmount,
+				DonationCount = count
+			});
+		}
+
+
+	}
 }

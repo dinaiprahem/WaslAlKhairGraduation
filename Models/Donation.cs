@@ -12,12 +12,16 @@ namespace WaslAlkhair.Api.Models
         // Donor details
         public string? DonorId { get; set; }
         public AppUser? Donor { get; set; }
+        
+        //payment and its confirmation 
+		public string? StripeSessionId { get; set; }
+		public bool IsPaid { get; set; } = false;     
+		public DateTime? PaymentConfirmedAt { get; set; } 
 
 
+		//************* For Diffrent Donation Types ************//
 
-        //************* For Diffrent Donation Types ************//
-     
-        public DonationType Type { get; set; }
+		public DonationType Type { get; set; }
      
 
         // For Category donations

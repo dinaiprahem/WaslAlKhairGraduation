@@ -17,6 +17,7 @@ using System.Net;
 using WaslAlkhair.Api.Services;
 using WaslAlkhair.Api.Mappings;
 using WaslAlkhair.Api.MappingProfiles;
+using Stripe;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +36,7 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 
 builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twilio"));
+
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -75,6 +77,9 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddDbContext<AppDbContext>(
     opt => opt.UseSqlServer(builder.Configuration.GetConnectionString("DefaultSQLConnection")));
 
+//stripe config 
+StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+var stripeWebhookSecret = builder.Configuration["Stripe:WebhookSecret"];
 
 // Add Identity
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
