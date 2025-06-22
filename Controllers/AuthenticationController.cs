@@ -185,25 +185,39 @@ namespace WaslAlkhair.Api.Controllers
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
                 var resetLink = $"http://localhost:5173/ResetPassword?email={request.Email}&token={Uri.EscapeDataString(token)}";
 
-                await _emailService.SendEmailAsync(user.Email, "Reset Your Password",
-                                 $@"
-                                <div style='font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;'>
-                                    <h2 style='color: #333;'>Reset Your Password</h2>
-                                    <p style='font-size: 16px; color: #555;'>
-                                        You requested to reset your password. Click the button below to proceed:
-                                    </p>
-                                    <a href='{resetLink}' style='display: inline-block; padding: 12px 20px; margin-top: 15px; background-color: #007bff; color: #fff; text-decoration: none; border-radius: 5px; font-weight: bold;'>
-                                        Reset Password
-                                    </a>
-                                    <p style='margin-top: 20px; font-size: 14px; color: #999;'>
-                                        If you did not request this, please ignore this email.
-                                    </p>
-                                    <hr style='margin: 30px 0;' />
-                                    <p style='font-size: 12px; color: #aaa;'>
-                                        &copy; 2025 GoGreen Store. All rights reserved.
-                                    </p>
-                                </div>
-                                ");
+                await _emailService.SendEmailAsync(user.Email, "Reset Your Password - Wasl Al-Khair",
+ $@"
+<div style='font-family: Arial, sans-serif; background-color: #f9f9f9; padding: 30px;'>
+    <div style='max-width: 600px; margin: auto; background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 8px rgba(0,0,0,0.05);'>
+        <div style='background-color: #007bff; padding: 20px; text-align: center;'>
+            <h1 style='color: white; margin: 0;'>Wasl Al-Khair</h1>
+            <p style='color: #d1ecf1; margin-top: 8px; font-size: 14px;'>Connecting Goodness – وصل الخير</p>
+        </div>
+
+        <div style='padding: 30px;'>
+            <h2 style='color: #333;'>Reset Your Password</h2>
+            <p style='font-size: 16px; color: #555; line-height: 1.6;'>
+                We received a request to reset the password associated with this email address. If this was you, you can reset your password by clicking the button below:
+            </p>
+
+            <div style='text-align: center; margin: 30px 0;'>
+                <a href='{resetLink}' style='background-color: #007bff; color: white; padding: 14px 24px; text-decoration: none; border-radius: 6px; font-size: 16px; font-weight: bold; display: inline-block;'>
+                    Reset Password
+                </a>
+            </div>
+
+            <p style='font-size: 14px; color: #777;'>
+                If you didn’t request a password reset, you can safely ignore this email. No changes will be made to your account.
+            </p>
+        </div>
+
+        <div style='background-color: #f1f1f1; text-align: center; padding: 20px; font-size: 12px; color: #999;'>
+            &copy; 2025 Wasl Al-Khair. All rights reserved.<br/>
+            Empowering charity through technology.
+        </div>
+    </div>
+</div>
+");
 
                 return Ok(new { message = "A password reset link has been sent to your email. Please check your inbox." });
 
