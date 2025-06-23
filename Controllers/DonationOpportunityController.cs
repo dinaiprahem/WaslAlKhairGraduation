@@ -154,22 +154,51 @@ namespace WaslAlkhair.Api.Controllers
         public async Task<IActionResult> GetOpportunityById(int id)
         {
             var opportunity = await _unitOfWork.DonationOpportunity
-
                 .GetAsync(o => o.Id == id);
 
             if (opportunity == null)
                 return NotFound("Donation Opportunity not found");
 
-            // Increase page visits when retrieved
-            //opportunity.PageVisits++;
+            // Get role
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.Role);
 
-            var returnOpportunity=_mapper.Map<ResponseDonationOpportunityDetailsDTO>(opportunity);
+            if (claim == null || claim.Value == "User")
+            {
+                opportunity.PageVisits++;
+            }
+
+            // Get the most recent donation for this opportunity
+            var lastDonation = await _context.DonationDistributions
+                .Where(dd => dd.DonationOpportunityId == id)
+                .Include(dd => dd.Donation)
+                .OrderByDescending(dd => dd.Donation.DonatedAt)
+                .FirstOrDefaultAsync();
+
+            var returnOpportunity = _mapper.Map<ResponseDonationOpportunityDetailsDTO>(opportunity);
+
+            // Calculate LastDonationAgo
+            if (lastDonation != null)
+            {
+                returnOpportunity.LastDonationAgo = CalculateTimeAgo(lastDonation.Donation.DonatedAt);
+            }
+            else
+            {
+                returnOpportunity.LastDonationAgo = "No donations yet";
+            }
+
+            // Calculate completion percentage
+            returnOpportunity.CompletionPercentage = CalculateCompletionPercentage(opportunity.CollectedAmount, opportunity.TargetAmount);
+
             await _context.SaveChangesAsync();
 
             return Ok(returnOpportunity);
         }
+    
+            
 
-        
+
+
+
         // ✅ GET: api/DonationOpportunity (Get all opportunities)
         [HttpGet]
         public async Task<IActionResult> GetAllOpportunities([FromQuery] OpportunityStatus? status = null , [FromQuery] string? charityId = null)
@@ -194,10 +223,51 @@ namespace WaslAlkhair.Api.Controllers
             return Ok(returnOpportunities);
         }
 
-               
-        
 
 
 
+        private string CalculateTimeAgo(DateTime donationDate)
+        {
+            var timeSpan = DateTime.UtcNow - donationDate;
+
+            if (timeSpan.Days > 365)
+            {
+                int years = timeSpan.Days / 365;
+                return years == 1 ? "منذ سنة واحدة" : $"منذ {years} سنوات";
+            }
+            else if (timeSpan.Days > 30)
+            {
+                int months = timeSpan.Days / 30;
+                return months == 1 ? "منذ شهر واحد" : $"منذ {months} أشهر";
+            }
+            else if (timeSpan.Days > 0)
+            {
+                return timeSpan.Days == 1 ? "منذ يوم واحد" : $"منذ {timeSpan.Days} أيام";
+            }
+            else if (timeSpan.Hours > 0)
+            {
+                return timeSpan.Hours == 1 ? "منذ ساعة واحدة" : $"منذ {timeSpan.Hours} ساعات";
+            }
+            else if (timeSpan.Minutes > 0)
+            {
+                return timeSpan.Minutes == 1 ? "منذ دقيقة واحدة" : $"منذ {timeSpan.Minutes} دقائق";
+            }
+            else
+            {
+                return "منذ لحظات";
+            }
+        }
+
+        // 3. Helper method to calculate completion percentage
+        private decimal? CalculateCompletionPercentage(decimal collectedAmount, decimal? targetAmount)
+        {
+            if (!targetAmount.HasValue || targetAmount.Value == 0)
+                return null;
+
+            var percentage = (collectedAmount / targetAmount.Value) * 100;
+            return Math.Round(percentage, 2); // Round to 2 decimal places
+        }
     }
+
 }
+

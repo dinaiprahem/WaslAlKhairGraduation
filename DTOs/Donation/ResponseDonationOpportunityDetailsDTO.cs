@@ -16,6 +16,9 @@ namespace WaslAlkhair.Api.DTOs.Donation
 
         public int NumberOfDonors { get; set; } 
 
-        public int PageVisits { get; set; } 
+        public int PageVisits { get; set; }
+        public string LastDonationAgo { get; set; } // مثلًا: "من 3 ساعات"
+        // إضافة نسبة الإنجاز
+        public decimal? CompletionPercentage { get; set; } // نسبة الفلوس المجمعة من الهدف
     }
 }
