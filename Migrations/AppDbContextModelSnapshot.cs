@@ -355,47 +355,47 @@ namespace WaslAlkhair.Api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("7d4d60cb-9ca8-466a-84ba-fe2ee7094b3f"),
+                            Id = new Guid("c042b4d3-a294-4a20-a3c9-3565785033c3"),
                             Name = "طبية"
                         },
                         new
                         {
-                            Id = new Guid("598fb4da-b594-4acd-888f-36ff9990a0c6"),
+                            Id = new Guid("2a422020-1d39-4c3e-85c3-f4b79c21b9e6"),
                             Name = "غذائية"
                         },
                         new
                         {
-                            Id = new Guid("d76ddf63-e194-4730-889b-d8866033c4b9"),
+                            Id = new Guid("2149f8e4-7983-4a3a-8433-a506b8924a28"),
                             Name = "بيطرية"
                         },
                         new
                         {
-                            Id = new Guid("68a0bedc-80eb-4618-81a5-479d6855df9a"),
+                            Id = new Guid("9a43c845-f825-4ccc-bb3a-77ca8c7dea62"),
                             Name = "تعليمية"
                         },
                         new
                         {
-                            Id = new Guid("af96b147-1f27-4bb7-8484-e9b2c2429846"),
+                            Id = new Guid("9d848647-17af-417b-9111-1e560a021026"),
                             Name = "مالية"
                         },
                         new
                         {
-                            Id = new Guid("7dca1d8f-4b4d-4c8e-8195-2f51bd08ba78"),
+                            Id = new Guid("5a73bfa9-b15c-4194-996a-7772138b3976"),
                             Name = "سكنية"
                         },
                         new
                         {
-                            Id = new Guid("ab7fde9a-c6f2-4df3-8de7-c0927bf70c51"),
+                            Id = new Guid("c2b55ee9-bcc0-45b3-8628-2d757e47b53e"),
                             Name = "بيئية"
                         },
                         new
                         {
-                            Id = new Guid("e71bff38-465b-4055-8902-52b5fae48b50"),
+                            Id = new Guid("799f7d5a-1b94-4f62-be4f-11675a36cc8f"),
                             Name = "ذوي الاحتياجات الخاصة"
                         },
                         new
                         {
-                            Id = new Guid("f916bc25-8632-42ea-a704-35974772bf6d"),
+                            Id = new Guid("ce47cbfe-f5a1-4615-890a-ac3f69a13ace"),
                             Name = "طارئة وإغاثية"
                         });
                 });
