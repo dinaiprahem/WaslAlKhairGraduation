@@ -18,6 +18,9 @@ using WaslAlkhair.Api.Services;
 using WaslAlkhair.Api.Mappings;
 using WaslAlkhair.Api.MappingProfiles;
 using Stripe;
+using WaslAlkhair.Api.Services.Recommendation;
+using WaslAlkhair.Api.Utilities;
+using Microsoft.Extensions.Hosting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -178,6 +181,12 @@ builder.Services.AddScoped<IAssistanceRepository, AssistanceRepository>();
 builder.Services.AddScoped<IAssistanceTypeRepository, AssistanceTypeRepository>();
 builder.Services.AddScoped<ISearchService, SearchService>();
 
+builder.Services.AddScoped<IRecommendationDataService, RecommendationDataService>();
+builder.Services.AddScoped<IModelTrainingService, ModelTrainingService>();
+builder.Services.AddScoped<IRecommendationService, RecommendationService>();
+
+builder.Services.AddHostedService<ModelRetrainingBackgroundService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -193,6 +202,8 @@ app.UseStaticFiles(); // Enables serving static files from wwwroot
 app.UseHttpsRedirection();
 app.UseAuthentication(); // Enable Authentication
 app.UseAuthorization();
+
+app.UseDeveloperExceptionPage();
 
 app.MapControllers();
 
