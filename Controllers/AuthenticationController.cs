@@ -174,15 +174,27 @@ namespace WaslAlkhair.Api.Controllers
         [HttpPost("ForgotPassword")]
         public async Task<IActionResult> ForgotPassword(RequestForgotPasswordDto request)
         {
-            if (ModelState.IsValid)
+            try
             {
-                //Valudate user
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid payload", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+                }
+
+                // Validate user
                 var user = await _userManager.FindByEmailAsync(request.Email);
                 if (user == null)
                 {
-                    return BadRequest(new { message = "Invalid payload" });
+                    return BadRequest(new { message = "No user found with the provided email address." });
                 }
+
+                // Generate password reset token
                 var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                if (string.IsNullOrEmpty(token))
+                {
+                    return BadRequest(new { message = "Failed to generate password reset token." });
+                }
+
                 var resetLink = $"http://localhost:5173/ResetPassword?email={request.Email}&token={Uri.EscapeDataString(token)}";
 
                 await _emailService.SendEmailAsync(user.Email, "Reset Your Password - Wasl Al-Khair",
@@ -207,7 +219,7 @@ namespace WaslAlkhair.Api.Controllers
             </div>
 
             <p style='font-size: 14px; color: #777;'>
-                If you didn’t request a password reset, you can safely ignore this email. No changes will be made to your account.
+                If you didn't request a password reset, you can safely ignore this email. No changes will be made to your account.
             </p>
         </div>
 
@@ -220,31 +232,251 @@ namespace WaslAlkhair.Api.Controllers
 ");
 
                 return Ok(new { message = "A password reset link has been sent to your email. Please check your inbox." });
-
             }
-            return BadRequest(new { message = "Invalid payload" });
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { 
+                    message = "An error occurred while processing the password reset request.", 
+                    error = ex.Message 
+                });
+            }
         }
 
+
+        [HttpGet("ValidateResetPasswordToken")]
+        public async Task<IActionResult> ValidateResetPasswordToken(string email, string token)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+                {
+                    return BadRequest(new { message = "Email and token are required." });
+                }
+
+                var user = await _userManager.FindByEmailAsync(email);
+                if (user == null)
+                {
+                    return BadRequest(new { message = "User not found with the provided email address." });
+                }
+
+                // Decode the token
+                var decodedToken = Uri.UnescapeDataString(token);
+
+                // Validate the token
+                var isValidToken = await _userManager.VerifyUserTokenAsync(user, 
+                    _userManager.Options.Tokens.PasswordResetTokenProvider, 
+                    "ResetPassword", 
+                    decodedToken);
+                
+                if (!isValidToken)
+                {
+                    return BadRequest(new { message = "Invalid or expired token." });
+                }
+
+                return Ok(new { message = "Token is valid.", isValid = true });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { 
+                    message = "An error occurred while validating the token.", 
+                    error = ex.Message 
+                });
+            }
+        }
 
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword(ResetPasswordRequestDTO request)
         {
-            if (!ModelState.IsValid)
+            try
             {
-                return BadRequest(new { message = "Invalid payload" });
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(new { message = "Invalid payload", errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage) });
+                }
+                
+                var user = await _userManager.FindByEmailAsync(request.Email);
+                if (user == null)
+                {
+                    return BadRequest(new { message = "User not found with the provided email address." });
+                }
+                
+                // Decode the token properly
+                var decodedToken = Uri.UnescapeDataString(request.Token);
+                
+                // Validate the token before attempting to reset password
+                var isValidToken = await _userManager.VerifyUserTokenAsync(user, 
+                    _userManager.Options.Tokens.PasswordResetTokenProvider, 
+                    "ResetPassword", 
+                    decodedToken);
+                
+                if (!isValidToken)
+                {
+                    return BadRequest(new { message = "Invalid or expired password reset token. Please request a new password reset." });
+                }
+                
+                var resetPasswordResult = await _userManager.ResetPasswordAsync(user, decodedToken, request.Password);
+                if (!resetPasswordResult.Succeeded)
+                {
+                    return BadRequest(new { 
+                        message = "Password reset failed.", 
+                        errors = resetPasswordResult.Errors.Select(e => e.Description) 
+                    });
+                }
+                
+                return Ok(new { message = "Password reset successfully!" });
             }
-            var user = await _userManager.FindByEmailAsync(request.Email);
-            if (user == null)
+            catch (Exception ex)
             {
-                return BadRequest(new { message = "Invalid payload" });
+                // Log the exception for debugging
+                return StatusCode(500, new { 
+                    message = "An error occurred during password reset.", 
+                    error = ex.Message 
+                });
             }
-            var decodedToken = Uri.UnescapeDataString(request.Token);
-            var resetPasswordResult = await _userManager.ResetPasswordAsync(user, decodedToken, request.Password);
-            if (!resetPasswordResult.Succeeded)
+        }
+
+        [HttpPost("ChangePassword")]
+        [Authorize] // Requires authentication
+        public async Task<ActionResult<APIResponse>> ChangePassword([FromBody] ChangePasswordDto request)
+        {
+            try
             {
-                return BadRequest(new { message = "Password reset failed.", errors = resetPasswordResult.Errors.Select(e => e.Description) });
+                if (!ModelState.IsValid)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(_response);
+                }
+
+                // Validate that new password and confirm password match
+                if (request.NewPassword != request.ConfirmNewPassword)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("New password and confirm password do not match.");
+                    return BadRequest(_response);
+                }
+
+                // Get the current user from the JWT token
+                var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    _response.StatusCode = HttpStatusCode.Unauthorized;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("User not authenticated.");
+                    return Unauthorized(_response);
+                }
+
+                var user = await _userManager.FindByEmailAsync(userEmail);
+                if (user == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("User not found.");
+                    return NotFound(_response);
+                }
+
+                // Verify current password
+                var isCurrentPasswordValid = await _userManager.CheckPasswordAsync(user, request.CurrentPassword);
+                if (!isCurrentPasswordValid)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("Current password is incorrect.");
+                    return BadRequest(_response);
+                }
+
+                // Change the password
+                var changePasswordResult = await _userManager.ChangePasswordAsync(user, request.CurrentPassword, request.NewPassword);
+                if (!changePasswordResult.Succeeded)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = changePasswordResult.Errors.Select(e => e.Description).ToList();
+                    return BadRequest(_response);
+                }
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Message = "Password changed successfully!";
+                return Ok(_response);
             }
-            return Ok(new { message = "Password reset successfully!" });
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { ex.Message };
+                return StatusCode((int)HttpStatusCode.InternalServerError, _response);
+            }
+        }
+
+        [HttpPost("SimpleChangePassword")]
+        [Authorize] // Requires authentication
+        public async Task<ActionResult<APIResponse>> SimpleChangePassword([FromBody] SimpleChangePasswordDto request)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                    return BadRequest(_response);
+                }
+
+                // Validate that new password and confirm password match
+                if (request.NewPassword != request.ConfirmNewPassword)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("New password and confirm password do not match.");
+                    return BadRequest(_response);
+                }
+
+                // Get the current user from the JWT token
+                var userEmail = User.FindFirst(ClaimTypes.Email)?.Value;
+                if (string.IsNullOrEmpty(userEmail))
+                {
+                    _response.StatusCode = HttpStatusCode.Unauthorized;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("User not authenticated.");
+                    return Unauthorized(_response);
+                }
+
+                var user = await _userManager.FindByEmailAsync(userEmail);
+                if (user == null)
+                {
+                    _response.StatusCode = HttpStatusCode.NotFound;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages.Add("User not found.");
+                    return NotFound(_response);
+                }
+
+                // Generate a password reset token and use it to change the password
+                var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+                var changePasswordResult = await _userManager.ResetPasswordAsync(user, token, request.NewPassword);
+                
+                if (!changePasswordResult.Succeeded)
+                {
+                    _response.StatusCode = HttpStatusCode.BadRequest;
+                    _response.IsSuccess = false;
+                    _response.ErrorMessages = changePasswordResult.Errors.Select(e => e.Description).ToList();
+                    return BadRequest(_response);
+                }
+
+                _response.StatusCode = HttpStatusCode.OK;
+                _response.IsSuccess = true;
+                _response.Message = "Password changed successfully!";
+                return Ok(_response);
+            }
+            catch (Exception ex)
+            {
+                _response.StatusCode = HttpStatusCode.InternalServerError;
+                _response.IsSuccess = false;
+                _response.ErrorMessages = new List<string> { ex.Message };
+                return StatusCode((int)HttpStatusCode.InternalServerError, _response);
+            }
         }
 
         [HttpPost("google-login")]

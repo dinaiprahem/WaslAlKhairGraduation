@@ -87,8 +87,22 @@ var stripeWebhookSecret = builder.Configuration["Stripe:WebhookSecret"];
 // Add Identity
 builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
-    options.SignIn.RequireConfirmedEmail = true;
+    // Remove the email confirmation requirement for sign-in to allow password resets
+    options.SignIn.RequireConfirmedEmail = false;
+    
+    // Configure token providers for password reset
     options.Tokens.EmailConfirmationTokenProvider = TokenOptions.DefaultEmailProvider;
+    options.Tokens.PasswordResetTokenProvider = TokenOptions.DefaultEmailProvider;
+    
+    // Configure password requirements if needed
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 6;
+    
+    // Configure user requirements
+    options.User.RequireUniqueEmail = true;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
