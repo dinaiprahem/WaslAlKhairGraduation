@@ -20,7 +20,8 @@ namespace WaslAlkhair.Api.Profiles
             // Mapping from Opportunity to OpportunityDto
             CreateMap<Opportunity, OpportunityDto>()
                 .ForMember(dest => dest.CreatedBy, opt => opt.MapFrom(src => src.CreatedBy)) // Map CreatedBy
-                .ForMember(dest => dest.Participants, opt => opt.MapFrom(src => src.Participants)); // Map Participants
+                .ForMember(dest => dest.Participants, opt => opt.MapFrom(src => src.Participants)) // Map Participants
+                .ForMember(dest => dest.CreatedById, opt => opt.MapFrom(src => src.CreatedById)); // Map CreatedById
 
             // Mapping from CreateOpportunityDto to Opportunity
             CreateMap<CreateOpportunityDto, Opportunity>();

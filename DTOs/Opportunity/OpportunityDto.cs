@@ -17,6 +17,7 @@
         public string? PhotoUrl { get; set; }
         public UserDto CreatedBy { get; set; } = null!;
         public List<ParticipationDto> Participants { get; set; } = new();
+        public string CreatedById { get; set; } // User ID of the opportunity creator
     }
 
     public class UserDto
